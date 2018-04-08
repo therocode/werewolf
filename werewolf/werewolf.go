@@ -14,7 +14,8 @@ type Config struct {
 
 // commands
 const (
-	cmdJoin = "join"
+	cmdJoin  = "join"
+	cmdStart = "start"
 )
 
 // gamestates
@@ -25,12 +26,14 @@ const ( // iota is reset to 0
 )
 
 type Player struct {
+	name string
 }
 
 type Werewolf struct {
 	irc          *irc.Connection
 	config       Config
 	state        int
+	owner        string
 	participants map[string]Player
 }
 
@@ -43,7 +46,7 @@ func NewWerewolf(irc *irc.Connection, config Config) (instance *Werewolf) {
 }
 
 // Parse message into a game command with arguments
-func (instance Werewolf) HandleMessage(channel string, nick string, message string) {
+func (instance *Werewolf) HandleMessage(channel string, nick string, message string) {
 	words := strings.Fields(message)
 
 	if len(words) > 0 {
@@ -67,15 +70,28 @@ func (instance Werewolf) HandleMessage(channel string, nick string, message stri
 	}
 }
 
-func (instance Werewolf) handleCommand(channel string, nick string, command string, arguments []string) {
+func (instance *Werewolf) handleCommand(channel string, nick string, command string, arguments []string) {
 	if instance.state == GameStateInvite {
 		switch command {
 		case cmdJoin:
 			if instance.getPlayer(nick) == nil {
 				instance.irc.Privmsgf(channel, "%s has joined the game!", nick)
 				instance.playerJoin(nick)
+
+				//temporary hack. right now the owner is the first player to join
+				if instance.owner == "" {
+					instance.owner = nick
+					instance.irc.Privmsgf(channel, "%s is now the owner", nick)
+				}
 			} else {
 				instance.irc.Privmsgf(channel, "You cannot join, %s. You've already joined.", nick)
+			}
+		case cmdStart:
+			if nick != instance.owner {
+				instance.irc.Privmsgf(channel, "%s is the owner and only they can start the game.", instance.owner)
+			} else {
+				instance.irc.Privmsgf(channel, "The game starts now!")
+				instance.startGame()
 			}
 		default:
 			log.Printf(channel, "unknown command '%s'", command)
