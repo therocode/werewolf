@@ -16,11 +16,12 @@ const serverssl = "irc.boxbox.org:6697"
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	var config werewolf.Config //later load from file or something
-	var werewolfInstance *werewolf.Werewolf = werewolf.NewWerewolf(config)
-
 	ircnick1 := "ulfmann"
 	irccon := irc.IRC(ircnick1, "Ulf Mannerstrom")
+
+	var config werewolf.Config //later load from file or something
+	var werewolfInstance *werewolf.Werewolf = werewolf.NewWerewolf(irccon, config)
+
 	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
 	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
 	irccon.UseTLS = true

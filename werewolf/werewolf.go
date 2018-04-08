@@ -3,6 +3,8 @@ package werewolf
 import (
 	"log"
 	"strings"
+
+	irc "github.com/thoj/go-ircevent"
 )
 
 type Config struct {
@@ -10,13 +12,33 @@ type Config struct {
 	nightLength int `json:"night_length"` //in minutes
 }
 
+// commands
+const (
+	cmdJoin = "join"
+)
+
+// gamestates
+const ( // iota is reset to 0
+	GameStateInvite = iota // c0 == 0
+	GameStateDay    = iota // c1 == 1
+	GameStateNight  = iota // c2 == 2
+)
+
+type Player struct {
+}
+
 type Werewolf struct {
-	config Config
+	irc          *irc.Connection
+	config       Config
+	state        int
+	participants map[string]Player
 }
 
 // Create new game instance based on a configuration
-func NewWerewolf(config Config) (instance *Werewolf) {
-	instance = &Werewolf{config}
+func NewWerewolf(irc *irc.Connection, config Config) (instance *Werewolf) {
+	instance = &Werewolf{irc: irc, config: config}
+	instance.state = GameStateInvite
+	instance.participants = make(map[string]Player)
 	return
 }
 
@@ -46,4 +68,18 @@ func (instance Werewolf) HandleMessage(channel string, nick string, message stri
 }
 
 func (instance Werewolf) handleCommand(channel string, nick string, command string, arguments []string) {
+	if instance.state == GameStateInvite {
+		switch command {
+		case cmdJoin:
+			if instance.getPlayer(nick) == nil {
+				instance.irc.Privmsgf(channel, "%s has joined the game!", nick)
+				instance.playerJoin(nick)
+			} else {
+				instance.irc.Privmsgf(channel, "You cannot join, %s. You've already joined.", nick)
+			}
+		default:
+			log.Printf(channel, "unknown command '%s'", command)
+			instance.irc.Privmsgf(channel, "Unknown command '%s'", command)
+		}
+	}
 }
