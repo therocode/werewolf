@@ -28,6 +28,7 @@ const ( // iota is reset to 0
 type Player struct {
 	irc  *irc.Connection
 	name string
+	role Role
 }
 
 type Werewolf struct {
@@ -44,6 +45,7 @@ func NewWerewolf(irc *irc.Connection, config Config, mainChannel string) (instan
 	instance = &Werewolf{irc: irc, config: config}
 	instance.mainChannel = newIRCChannel(irc, mainChannel)
 	instance.participants = make(map[string]*Player)
+	instance.mainChannel.message("New werewolf game started.")
 	return
 }
 
@@ -79,6 +81,7 @@ func (instance *Werewolf) handleCommand(channel string, nick string, command str
 			if instance.getPlayer(nick) == nil {
 				instance.irc.Privmsgf(channel, "%s has joined the game!", nick)
 				instance.playerJoin(nick)
+				instance.participants[instance.owner].message("you are the leader of the pack")
 			} else {
 				instance.irc.Privmsgf(channel, "You cannot join, %s. You've already joined.", nick)
 			}
@@ -88,7 +91,6 @@ func (instance *Werewolf) handleCommand(channel string, nick string, command str
 			} else {
 				instance.irc.Privmsgf(channel, "The game starts now!")
 				instance.mainChannel.message("the game has now been started!")
-				instance.participants[instance.owner].message("you are the leader of the pack")
 				instance.startGame()
 			}
 		default:

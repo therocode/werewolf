@@ -3,7 +3,8 @@ package werewolf
 import "fmt"
 
 func (instance *Werewolf) playerJoin(nick string) {
-	instance.participants[nick] = &Player{instance.irc, nick}
+	instance.participants[nick] = &Player{instance.irc, nick, &RoleVillager{}}
+	instance.participants[nick].message("welcome. The main game channel is '%s'. Be sure to join", instance.mainChannel.name)
 }
 
 func (instance *Werewolf) getPlayer(nick string) *Player {
