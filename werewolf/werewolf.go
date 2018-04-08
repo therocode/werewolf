@@ -36,14 +36,14 @@ type Werewolf struct {
 	mainChannel  IRCChannel
 	state        int
 	owner        string
-	participants map[string]Player
+	participants map[string]*Player
 }
 
 // Create new game instance based on a configuration
 func NewWerewolf(irc *irc.Connection, config Config, mainChannel string) (instance *Werewolf) {
 	instance = &Werewolf{irc: irc, config: config}
 	instance.mainChannel = newIRCChannel(irc, mainChannel)
-	instance.participants = make(map[string]Player)
+	instance.participants = make(map[string]*Player)
 	return
 }
 
@@ -87,6 +87,8 @@ func (instance *Werewolf) handleCommand(channel string, nick string, command str
 				instance.irc.Privmsgf(channel, "%s is the owner and only they can start the game.", instance.owner)
 			} else {
 				instance.irc.Privmsgf(channel, "The game starts now!")
+				instance.mainChannel.message("the game has now been started!")
+				instance.participants[instance.owner].message("you are the leader of the pack")
 				instance.startGame()
 			}
 		default:
