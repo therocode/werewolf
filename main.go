@@ -20,7 +20,7 @@ func main() {
 	irccon := irc.IRC(ircnick1, "Ulf Mannerstrom")
 
 	var config werewolf.Config //later load from file or something
-	var werewolfInstance *werewolf.Werewolf = werewolf.NewWerewolf(irccon, config)
+	var werewolfInstance *werewolf.Werewolf
 
 	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
 	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
@@ -32,8 +32,22 @@ func main() {
 		message := e.Message()
 		if message[0] == '!' { //only process messages starting with '!'
 			nick := e.Nick
-			channel := e.Arguments[0] //arg 0 for privmsg is the channel name
-			werewolfInstance.HandleMessage(channel, nick, message)
+
+			if message == "!newgame" {
+				if werewolfInstance == nil {
+					werewolfInstance = werewolf.NewWerewolf(irccon, config, "#wolfgame") //parse #wolfgame from message or randomize
+					werewolfInstance.NewGame(nick)
+				} else {
+					irccon.Privmsgf(channel, "Cannot start new game with game already in progress")
+				}
+			} else {
+				if werewolfInstance != nil {
+					channel := e.Arguments[0] //arg 0 for privmsg is the channel name
+					werewolfInstance.HandleMessage(channel, nick, message)
+				} else {
+					irccon.Privmsg(channel, "Start a new game with !newgame first")
+				}
+			}
 		}
 	})
 	err := irccon.Connect(serverssl)

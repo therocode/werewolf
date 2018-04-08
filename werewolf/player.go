@@ -1,7 +1,7 @@
 package werewolf
 
 func (instance *Werewolf) playerJoin(nick string) {
-	instance.participants[nick] = Player{}
+	instance.participants[nick] = Player{instance.irc, nick}
 }
 
 func (instance *Werewolf) getPlayer(nick string) *Player {

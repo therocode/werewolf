@@ -26,21 +26,23 @@ const ( // iota is reset to 0
 )
 
 type Player struct {
+	irc  *irc.Connection
 	name string
 }
 
 type Werewolf struct {
 	irc          *irc.Connection
 	config       Config
+	mainChannel  IRCChannel
 	state        int
 	owner        string
 	participants map[string]Player
 }
 
 // Create new game instance based on a configuration
-func NewWerewolf(irc *irc.Connection, config Config) (instance *Werewolf) {
+func NewWerewolf(irc *irc.Connection, config Config, mainChannel string) (instance *Werewolf) {
 	instance = &Werewolf{irc: irc, config: config}
-	instance.state = GameStateInvite
+	instance.mainChannel = newIRCChannel(irc, mainChannel)
 	instance.participants = make(map[string]Player)
 	return
 }
@@ -77,12 +79,6 @@ func (instance *Werewolf) handleCommand(channel string, nick string, command str
 			if instance.getPlayer(nick) == nil {
 				instance.irc.Privmsgf(channel, "%s has joined the game!", nick)
 				instance.playerJoin(nick)
-
-				//temporary hack. right now the owner is the first player to join
-				if instance.owner == "" {
-					instance.owner = nick
-					instance.irc.Privmsgf(channel, "%s is now the owner", nick)
-				}
 			} else {
 				instance.irc.Privmsgf(channel, "You cannot join, %s. You've already joined.", nick)
 			}
