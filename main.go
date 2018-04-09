@@ -29,11 +29,11 @@ func main() {
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 	irccon.AddCallback("366", func(e *irc.Event) {})
 	irccon.AddCallback("PRIVMSG", func(e *irc.Event) {
-		message := e.Message()
-		if message[0] == '!' { //only process messages starting with '!'
+
+		if cmd, err := werewolf.ParseCommand(e.Message()); err == nil {
 			nick := e.Nick
 
-			if message == "!newgame" {
+			if cmd.Command == "newgame" {
 				if werewolfInstance == nil {
 					werewolfInstance = werewolf.NewWerewolf(irccon, config, "#wolfgame") //parse #wolfgame from message or randomize
 					werewolfInstance.NewGame(nick)
@@ -43,7 +43,7 @@ func main() {
 			} else {
 				if werewolfInstance != nil {
 					channel := e.Arguments[0] //arg 0 for privmsg is the channel name
-					werewolfInstance.HandleMessage(channel, nick, message)
+					werewolfInstance.HandleMessage(channel, nick, cmd)
 				} else {
 					irccon.Privmsg(channel, "Start a new game with !newgame first")
 				}

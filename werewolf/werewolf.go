@@ -20,9 +20,9 @@ const (
 
 // gamestates
 const ( // iota is reset to 0
-	GameStateInvite = iota // c0 == 0
-	GameStateDay    = iota // c1 == 1
-	GameStateNight  = iota // c2 == 2
+	GameStateInvite = "GameStateInvite" // c0 == 0
+	GameStateDay    = "GameStateDay"    // c1 == 1
+	GameStateNight  = "GameStateNight"  // c2 == 2
 )
 
 type Player struct {
@@ -35,7 +35,7 @@ type Werewolf struct {
 	irc          *irc.Connection
 	config       Config
 	mainChannel  IRCChannel
-	state        int
+	state        string
 	owner        string
 	participants map[string]*Player
 }
@@ -50,33 +50,20 @@ func NewWerewolf(irc *irc.Connection, config Config, mainChannel string) (instan
 }
 
 // Parse message into a game command with arguments
-func (instance *Werewolf) HandleMessage(channel string, nick string, message string) {
-	words := strings.Fields(message)
-
-	if len(words) > 0 {
-		command := words[0]   //command is f.e "vote" from "!vote <name>"
-		command = command[1:] //remove the leading '!'
-
-		if command == "" {
-			log.Printf("ch[%s], nick[%s]| empty command", channel, nick)
-			return
-		}
-
-		command_args := []string{} //commands is a list of strings with arguments for the command. f.e. [<name>] from "!vote <name>". can be empty
-		if len(words) > 1 {
-			command_args = words[1:]
-		}
-
-		log.Printf("ch[%s], nick[%s]| command: '%s' [%s]", channel, nick, command, strings.Join(command_args, ","))
-		instance.handleCommand(channel, nick, command, command_args)
-	} else {
-		log.Printf("ch[%s], nick[%s]| empty message", channel, nick)
-	}
+func (instance *Werewolf) HandleMessage(channel string, nick string, cmd Command) {
+	log.Printf("ch[%s], nick[%s]| command: '%s' [%s]", channel, nick, cmd.Command, strings.Join(cmd.Args, ","))
+	instance.handleCommand(channel, nick, cmd)
 }
 
-func (instance *Werewolf) handleCommand(channel string, nick string, command string, arguments []string) {
-	if instance.state == GameStateInvite {
-		switch command {
+func (instance *Werewolf) logInvalidCommand(channel string, command string) {
+	log.Printf(channel, "command '%s' is either unknown or not applicable during %s", command, instance.state)
+	instance.irc.Privmsgf(channel, "command '%s' is either unknown or not applicable during %s", command, instance.state)
+}
+
+func (instance *Werewolf) handleCommand(channel string, nick string, cmd Command) {
+	switch instance.state {
+	case GameStateInvite:
+		switch cmd.Command {
 		case cmdJoin:
 			if instance.getPlayer(nick) == nil {
 				instance.irc.Privmsgf(channel, "%s has joined the game!", nick)
@@ -94,8 +81,9 @@ func (instance *Werewolf) handleCommand(channel string, nick string, command str
 				instance.startGame()
 			}
 		default:
-			log.Printf(channel, "unknown command '%s'", command)
-			instance.irc.Privmsgf(channel, "Unknown command '%s'", command)
+			instance.logInvalidCommand(channel, cmd.Command)
 		}
+	default:
+		instance.logInvalidCommand(channel, cmd.Command)
 	}
 }
