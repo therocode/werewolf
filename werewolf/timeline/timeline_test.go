@@ -99,8 +99,8 @@ func TestTimelineWithGame(t *testing.T) {
 func TestTimelineWithGameAndWerewolf(t *testing.T) {
 	// GIVEN a timeline with a game generator and a werewolf generator
 	generators := map[Generator]bool{
-		Game{}:     true,
 		Werewolf{}: true,
+		Game{}:     true,
 	}
 
 	// WHEN generating the timeline
