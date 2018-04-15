@@ -5,12 +5,71 @@ import (
 	"testing"
 )
 
+// Test roles
+type Game struct{}
+
+func (Game) generate() []Event {
+	return []Event{
+		Event{
+			"night_starts",
+			map[string]bool{},
+			map[string]bool{},
+		},
+		Event{
+			"day_starts",
+			map[string]bool{"night_starts": true},
+			map[string]bool{},
+		},
+	}
+}
+
+type Werewolf struct{}
+
+func (Werewolf) generate() []Event {
+	return []Event{
+		Event{
+			"werewolves_see_each_other",
+			map[string]bool{"night_starts": true},
+			map[string]bool{"day_starts": true},
+		},
+		Event{
+			"werewolves_kill",
+			map[string]bool{"werewolves_see_each_other": true},
+			map[string]bool{"day_starts": true},
+		},
+	}
+}
+
+type Doctor struct{}
+
+func (Doctor) generate() []Event {
+	return []Event{
+		Event{
+			"doctor_heals",
+			map[string]bool{"werewolves_kill": true},
+			map[string]bool{"day_starts": true},
+		},
+	}
+}
+
+type Seer struct{}
+
+func (Seer) generate() []Event {
+	return []Event{
+		Event{
+			"seer_identifies",
+			map[string]bool{"werewolves_kill": true},
+			map[string]bool{"day_starts": true},
+		},
+	}
+}
+
 func TestEmptyTimeline(t *testing.T) {
-	// GIVEN a timeline with no generators
-	timeline := Timeline{}
+	// GIVEN an empty set of generators
+	generators := map[Generator]bool{}
 
 	// WHEN generating the timeline
-	result := timeline.Generate()
+	result := Generate(generators)
 
 	// THEN an empty timeline pops out
 	if len(result) > 0 {
@@ -19,11 +78,13 @@ func TestEmptyTimeline(t *testing.T) {
 }
 
 func TestTimelineWithGame(t *testing.T) {
-	// GIVEN a timeline with a game generator
-	timeline := Timeline{[]Generator{Game{}}}
+	// GIVEN a single game generator
+	generators := map[Generator]bool{
+		Game{}: true,
+	}
 
 	// WHEN generating the timeline
-	result := timeline.Generate()
+	result := Generate(generators)
 
 	// THEN a timeline with only basic game events pops out
 	expected := []string{
@@ -37,10 +98,13 @@ func TestTimelineWithGame(t *testing.T) {
 
 func TestTimelineWithGameAndWerewolf(t *testing.T) {
 	// GIVEN a timeline with a game generator and a werewolf generator
-	timeline := Timeline{[]Generator{Werewolf{}, Game{}}}
+	generators := map[Generator]bool{
+		Game{}:     true,
+		Werewolf{}: true,
+	}
 
 	// WHEN generating the timeline
-	result := timeline.Generate()
+	result := Generate(generators)
 
 	// THEN a timeline with game events and werewolf events pops out
 	expected := []string{
@@ -55,17 +119,17 @@ func TestTimelineWithGameAndWerewolf(t *testing.T) {
 }
 
 func TestTimelineWithGameAndWerewolfAndDoctor(t *testing.T) {
-	// GIVEN a timeline with a game generator and a werewolf generator
-	timeline := Timeline{[]Generator{
-		Werewolf{},
-		Game{},
-		Doctor{},
-	}}
+	// GIVEN
+	generators := map[Generator]bool{
+		Game{}:     true,
+		Werewolf{}: true,
+		Doctor{}:   true,
+	}
 
-	// WHEN generating the timeline
-	result := timeline.Generate()
+	// WHEN
+	result := Generate(generators)
 
-	// THEN a timeline with game events and werewolf events pops out
+	// THEN
 	expected := []string{
 		"night_starts",
 		"werewolves_see_each_other",
@@ -79,13 +143,17 @@ func TestTimelineWithGameAndWerewolfAndDoctor(t *testing.T) {
 }
 
 func TestTimelineWithGameAndWerewolfAndSeer(t *testing.T) {
-	// GIVEN a timeline with a game generator and a werewolf generator
-	timeline := Timeline{[]Generator{Game{}, Werewolf{}, Seer{}}}
+	// GIVEN
+	generators := map[Generator]bool{
+		Game{}:     true,
+		Werewolf{}: true,
+		Seer{}:     true,
+	}
 
-	// WHEN generating the timeline
-	result := timeline.Generate()
+	// WHEN
+	result := Generate(generators)
 
-	// THEN a timeline with game events and werewolf events pops out
+	// THEN
 	expected := []string{
 		"night_starts",
 		"werewolves_see_each_other",
@@ -99,18 +167,18 @@ func TestTimelineWithGameAndWerewolfAndSeer(t *testing.T) {
 }
 
 func TestTimelineWithGameAndWerewolfAndDoctorAndSeer(t *testing.T) {
-	// GIVEN a timeline with a game generator and a werewolf generator
-	timeline := Timeline{[]Generator{
-		Seer{},
-		Doctor{},
-		Werewolf{},
-		Game{},
-	}}
+	// GIVEN
+	generators := map[Generator]bool{
+		Game{}:     true,
+		Werewolf{}: true,
+		Seer{}:     true,
+		Doctor{}:   true,
+	}
 
-	// WHEN generating the timeline
-	result := timeline.Generate()
+	// WHEN
+	result := Generate(generators)
 
-	// THEN a timeline with game events and werewolf events pops out
+	// THEN
 	expected := []string{
 		"night_starts",
 		"werewolves_see_each_other",

@@ -2,93 +2,22 @@ package timeline
 
 import (
 	"encoding/json"
-	//"log"
 	"reflect"
 )
 
-/* Event */
+// Event in the game sequence
 type Event struct {
 	Name   string
 	Before map[string]bool
 	After  map[string]bool
 }
 
-/* Generator */
+// Generator is an object that can emit a set of events.
 type Generator interface {
 	generate() []Event
 }
 
-/* Roles */
-
-// Game
-type Game struct{}
-
-func (instance Game) generate() []Event {
-	return []Event{
-		Event{
-			"night_starts",
-			map[string]bool{},
-			map[string]bool{},
-		},
-		Event{
-			"day_starts",
-			map[string]bool{"night_starts": true},
-			map[string]bool{},
-		},
-	}
-}
-
-// Werewolf
-type Werewolf struct{}
-
-func (instance Werewolf) generate() []Event {
-	return []Event{
-		Event{
-			"werewolves_see_each_other",
-			map[string]bool{"night_starts": true},
-			map[string]bool{"day_starts": true},
-		},
-		Event{
-			"werewolves_kill",
-			map[string]bool{"werewolves_see_each_other": true},
-			map[string]bool{"day_starts": true},
-		},
-	}
-}
-
-// Doctor
-type Doctor struct{}
-
-func (instance Doctor) generate() []Event {
-	return []Event{
-		Event{
-			"doctor_heals",
-			map[string]bool{"werewolves_kill": true},
-			map[string]bool{"day_starts": true},
-		},
-	}
-}
-
-// Seer
-type Seer struct{}
-
-func (instance Seer) generate() []Event {
-	return []Event{
-		Event{
-			"seer_identifies",
-			map[string]bool{"werewolves_kill": true},
-			map[string]bool{"day_starts": true},
-		},
-	}
-}
-
-/* Timeline */
-
-type Timeline struct {
-	generators []Generator
-}
-
-func FilterEvents(events []Event, predicate func(Event) bool) ([]Event, []Event) {
+func filterEvents(events []Event, predicate func(Event) bool) ([]Event, []Event) {
 	trueResult := []Event{}
 	falseResult := []Event{}
 	for _, event := range events {
@@ -101,7 +30,7 @@ func FilterEvents(events []Event, predicate func(Event) bool) ([]Event, []Event)
 	return trueResult, falseResult
 }
 
-func ContainsEvent(event Event, events []Event) bool {
+func containsEvent(event Event, events []Event) bool {
 	for _, otherEvent := range events {
 		if event.Name == otherEvent.Name {
 			return true
@@ -111,7 +40,7 @@ func ContainsEvent(event Event, events []Event) bool {
 	return false
 }
 
-func MapEventToString(events []Event, f func(Event) string) []string {
+func mapEventToString(events []Event, f func(Event) string) []string {
 	result := []string{}
 	for _, event := range events {
 		result = append(result, f(event))
@@ -129,7 +58,7 @@ func str(v interface{}) string {
 	return string(bytes)
 }
 
-func CopyStringToBoolMap(m map[string]bool) map[string]bool {
+func copyStringToBoolMap(m map[string]bool) map[string]bool {
 	result := make(map[string]bool)
 	for k, v := range m {
 		result[k] = v
@@ -137,18 +66,19 @@ func CopyStringToBoolMap(m map[string]bool) map[string]bool {
 	return result
 }
 
-func (instance *Timeline) Generate() []string {
+// Generate a timeline of events based on a set of generators.
+func Generate(generators map[Generator]bool) []string {
 
 	// Get a list of all events
 	events := []Event{}
-	for _, generator := range instance.generators {
+	for generator := range generators {
 		events = append(events, generator.generate()...)
 	}
 
 	// Iterate over all events and take any events with no preconditions
 	// and put them in initial result list
 	var results []Event
-	results, events = FilterEvents(events, func(event Event) bool {
+	results, events = filterEvents(events, func(event Event) bool {
 		return len(event.Before) == 0 && len(event.After) == 0
 	})
 
@@ -158,8 +88,8 @@ func (instance *Timeline) Generate() []string {
 		// Iterate over remaining event list, moving any events over that now have
 		// their preconditions satisfied to the result list
 		for _, event := range events {
-			remainingBefores := CopyStringToBoolMap(event.Before)
-			remainingAfters := CopyStringToBoolMap(event.After)
+			remainingBefores := copyStringToBoolMap(event.Before)
+			remainingAfters := copyStringToBoolMap(event.After)
 			var markedIndex int
 
 			// Iterate over result list and first check off all befores, then all afters
@@ -192,12 +122,12 @@ func (instance *Timeline) Generate() []string {
 		}
 
 		// Remove any events that were added to the result list from the event list
-		_, events = FilterEvents(events, func(event Event) bool { return ContainsEvent(event, results) })
+		_, events = filterEvents(events, func(event Event) bool { return containsEvent(event, results) })
 
 		// Keep doing this until result list has an unchanged length between two
 		// iterations
 		if reflect.DeepEqual(results, resultsBefore) {
-			return MapEventToString(results, func(event Event) string { return event.Name })
+			return mapEventToString(results, func(event Event) string { return event.Name })
 		}
 	}
 }
