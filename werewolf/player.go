@@ -1,14 +1,18 @@
 package werewolf
 
-import "fmt"
+import (
+	"fmt"
 
-func (instance *Werewolf) playerJoin(nick string) {
-	instance.participants[nick] = &Player{instance.irc, nick, &RoleVillager{}}
-	instance.participants[nick].message("welcome. The main game channel is '%s'. Be sure to join", instance.mainChannel.name)
+	"github.com/therocode/werewolf/werewolf/roles"
+)
+
+func (instance *Game) playerJoin(nick string) {
+	instance.players[nick] = &Player{instance.irc, nick, &roles.Villager{}}
+	instance.players[nick].message("welcome. The main game channel is '%s'. Be sure to join", instance.mainChannel.name)
 }
 
-func (instance *Werewolf) getPlayer(nick string) *Player {
-	if val, exists := instance.participants[nick]; exists {
+func (instance *Game) getPlayer(nick string) *Player {
+	if val, exists := instance.players[nick]; exists {
 		return val
 	}
 	return nil

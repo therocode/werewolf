@@ -14,7 +14,7 @@ type Event struct {
 
 // Generator is an object that can emit a set of events.
 type Generator interface {
-	generate() []Event
+	Generate() []Event
 }
 
 func filterEvents(events []Event, predicate func(Event) bool) ([]Event, []Event) {
@@ -40,15 +40,6 @@ func containsEvent(event Event, events []Event) bool {
 	return false
 }
 
-func mapEventToString(events []Event, f func(Event) string) []string {
-	result := []string{}
-	for _, event := range events {
-		result = append(result, f(event))
-	}
-
-	return result
-}
-
 func str(v interface{}) string {
 	bytes, err := json.Marshal(v)
 	if err != nil {
@@ -67,12 +58,12 @@ func copyStringToBoolMap(m map[string]bool) map[string]bool {
 }
 
 // Generate a timeline of events based on a set of generators.
-func Generate(generators map[Generator]bool) []string {
+func Generate(generators map[Generator]bool) []Event {
 
 	// Get a list of all events
 	events := []Event{}
 	for generator := range generators {
-		events = append(events, generator.generate()...)
+		events = append(events, generator.Generate()...)
 	}
 
 	// Iterate over all events and take any events with no preconditions
@@ -127,7 +118,7 @@ func Generate(generators map[Generator]bool) []string {
 		// Keep doing this until result list has an unchanged length between two
 		// iterations
 		if reflect.DeepEqual(results, resultsBefore) {
-			return mapEventToString(results, func(event Event) string { return event.Name })
+			return results
 		}
 	}
 }

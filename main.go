@@ -1,60 +1,79 @@
 package main
 
 import (
-	"crypto/tls"
+	"io/ioutil"
 	"log"
-	"math/rand"
-	"time"
 
-	"github.com/therocode/werewolf/werewolf"
-	"github.com/thoj/go-ircevent"
+	"github.com/therocode/werewolf/werewolf/roles"
+	"github.com/therocode/werewolf/werewolf/testgame"
 )
 
 const channel = "#wolfadmin"
 const serverssl = "irc.boxbox.org:6697"
 
+func runTestGame() {
+	log.SetOutput(ioutil.Discard)
+
+	game := testgame.NewTestGame()
+
+	villager := roles.NewVillager(game, game)
+	game.AddRole(villager)
+	game.AddRole(roles.NewWerewolf(game, game, villager))
+
+	game.AddPlayer("ulf", "werewolf")
+	game.AddPlayer("wulf", "werewolf")
+	game.AddPlayer("dolph", "werewolf")
+	game.AddPlayer("stig", "villager")
+	game.AddPlayer("nils", "villager")
+	game.AddPlayer("hans", "villager")
+	game.AddPlayer("göte", "villager")
+	game.AddPlayer("lennart", "villager")
+
+	game.RunGame()
+}
+
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+	runTestGame()
+	return
+	/*
+		rand.Seed(time.Now().UTC().UnixNano())
 
-	ircnick1 := "ulfmann"
-	irccon := irc.IRC(ircnick1, "Ulf Mannerstrom")
+		ircnick1 := "ulfmann"
+		irccon := irc.IRC(ircnick1, "Ulf Mannerstrom")
 
-	var config werewolf.Config //later load from file or something
-	var werewolfInstance *werewolf.Werewolf
+		var config werewolf.Config //later load from file or something
+		var werewolfInstance *werewolf.Game
 
-	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
-	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
-	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
-	irccon.AddCallback("366", func(e *irc.Event) {})
-	irccon.AddCallback("PRIVMSG", func(e *irc.Event) {
+		irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
+		irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
+		irccon.UseTLS = true
+		irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
+		irccon.AddCallback("366", func(e *irc.Event) {})
+		irccon.AddCallback("PRIVMSG", func(e *irc.Event) {
 
-		if cmd, err := werewolf.ParseCommand(e.Message()); err == nil {
-			nick := e.Nick
-
-			if cmd.Command == "newgame" {
-				if werewolfInstance == nil {
-					werewolfInstance = werewolf.NewWerewolf(irccon, config, "#wolfgame") //parse #wolfgame from message or randomize
-					werewolfInstance.NewGame(nick)
+			if cmd, err := werewolf.ParseCommand(e.Arguments[0], e.Nick, e.Message()); err == nil {
+				if cmd.Command == "newgame" {
+					if werewolfInstance == nil {
+						werewolfInstance = werewolf.NewWerewolfGame(irccon, config, "#wolfgame", cmd.Nick) //parse #wolfgame from message or randomize
+					} else {
+						irccon.Privmsgf(channel, "Cannot start new game with game already in progress")
+					}
 				} else {
-					irccon.Privmsgf(channel, "Cannot start new game with game already in progress")
-				}
-			} else {
-				if werewolfInstance != nil {
-					channel := e.Arguments[0] //arg 0 for privmsg is the channel name
-					werewolfInstance.HandleMessage(channel, nick, cmd)
-				} else {
-					irccon.Privmsg(channel, "Start a new game with !newgame first")
+					if werewolfInstance != nil {
+						werewolfInstance.HandleCommand(cmd)
+					} else {
+						irccon.Privmsg(channel, "Start a new game with !newgame first")
+					}
 				}
 			}
+		})
+		err := irccon.Connect(serverssl)
+		if err != nil {
+			log.Printf("Err connecting: %s", err)
+			return
 		}
-	})
-	err := irccon.Connect(serverssl)
-	if err != nil {
-		log.Printf("Err connecting: %s", err)
-		return
-	}
 
-	irccon.Loop()
+		irccon.Loop()
+	*/
 }

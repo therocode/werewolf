@@ -8,7 +8,7 @@ import (
 // Test roles
 type Game struct{}
 
-func (Game) generate() []Event {
+func (Game) Generate() []Event {
 	return []Event{
 		Event{
 			"night_starts",
@@ -25,7 +25,7 @@ func (Game) generate() []Event {
 
 type Werewolf struct{}
 
-func (Werewolf) generate() []Event {
+func (Werewolf) Generate() []Event {
 	return []Event{
 		Event{
 			"werewolves_see_each_other",
@@ -42,7 +42,7 @@ func (Werewolf) generate() []Event {
 
 type Doctor struct{}
 
-func (Doctor) generate() []Event {
+func (Doctor) Generate() []Event {
 	return []Event{
 		Event{
 			"doctor_heals",
@@ -54,7 +54,7 @@ func (Doctor) generate() []Event {
 
 type Seer struct{}
 
-func (Seer) generate() []Event {
+func (Seer) Generate() []Event {
 	return []Event{
 		Event{
 			"seer_identifies",
@@ -91,9 +91,7 @@ func TestTimelineWithGame(t *testing.T) {
 		"night_starts",
 		"day_starts",
 	}
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("Expected %v but got %v", expected, result)
-	}
+	verifyTimeline(t, result, expected)
 }
 
 func TestTimelineWithGameAndWerewolf(t *testing.T) {
@@ -113,9 +111,7 @@ func TestTimelineWithGameAndWerewolf(t *testing.T) {
 		"werewolves_kill",
 		"day_starts",
 	}
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("Expected %v but got %v", expected, result)
-	}
+	verifyTimeline(t, result, expected)
 }
 
 func TestTimelineWithGameAndWerewolfAndDoctor(t *testing.T) {
@@ -137,9 +133,7 @@ func TestTimelineWithGameAndWerewolfAndDoctor(t *testing.T) {
 		"doctor_heals",
 		"day_starts",
 	}
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("Expected %v but got %v", expected, result)
-	}
+	verifyTimeline(t, result, expected)
 }
 
 func TestTimelineWithGameAndWerewolfAndSeer(t *testing.T) {
@@ -161,9 +155,7 @@ func TestTimelineWithGameAndWerewolfAndSeer(t *testing.T) {
 		"seer_identifies",
 		"day_starts",
 	}
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("Expected %v but got %v", expected, result)
-	}
+	verifyTimeline(t, result, expected)
 }
 
 func TestTimelineWithGameAndWerewolfAndDoctorAndSeer(t *testing.T) {
@@ -187,7 +179,21 @@ func TestTimelineWithGameAndWerewolfAndDoctorAndSeer(t *testing.T) {
 		"seer_identifies",
 		"day_starts",
 	}
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("Expected %v but got %v", expected, result)
+	verifyTimeline(t, result, expected)
+}
+
+func verifyTimeline(t *testing.T, actual []Event, expected []string) {
+	actualEventNames := mapEventToString(actual, func(event Event) string { return event.Name })
+	if !reflect.DeepEqual(actualEventNames, expected) {
+		t.Fatalf("Expected %v but got %v", expected, actualEventNames)
 	}
+}
+
+func mapEventToString(events []Event, f func(Event) string) []string {
+	result := []string{}
+	for _, event := range events {
+		result = append(result, f(event))
+	}
+
+	return result
 }
