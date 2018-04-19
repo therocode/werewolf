@@ -1,11 +1,6 @@
 package werewolf
 
-import (
-	"github.com/therocode/werewolf/werewolf/roles"
-	"github.com/therocode/werewolf/werewolf/timeline"
-	irc "github.com/thoj/go-ircevent"
-)
-
+/*
 type Config struct {
 	dayLength   int `json:"day_length"`   //in minutes
 	nightLength int `json:"night_length"` //in minutes

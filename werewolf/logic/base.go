@@ -1,4 +1,4 @@
-package roles
+package logic
 
 import (
 	"github.com/therocode/werewolf/werewolf/timeline"
@@ -15,10 +15,6 @@ func NewBase(data Data, communication Communication) *Base {
 	base.data = data
 	base.communication = communication
 	return base
-}
-
-func (*Base) Name() string {
-	return "game"
 }
 
 func (*Base) Generate() []timeline.Event {

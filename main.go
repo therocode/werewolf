@@ -4,7 +4,8 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/therocode/werewolf/werewolf/roles"
+	"github.com/therocode/werewolf/werewolf/logic/components"
+	"github.com/therocode/werewolf/werewolf/logic/roles"
 	"github.com/therocode/werewolf/werewolf/testgame"
 )
 
@@ -16,9 +17,11 @@ func runTestGame() {
 
 	game := testgame.NewTestGame()
 
-	villager := roles.NewVillager(game, game)
-	game.AddRole(villager)
-	game.AddRole(roles.NewWerewolf(game, game, villager))
+	lynchVote := components.NewVote("lynch")
+	killVote := components.NewVote("kill")
+
+	game.AddRole(roles.NewVillager(game, game, lynchVote))
+	game.AddRole(roles.NewWerewolf(game, game, killVote, lynchVote))
 
 	game.AddPlayer("ulf", "werewolf")
 	game.AddPlayer("wulf", "werewolf")

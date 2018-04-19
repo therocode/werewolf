@@ -4,36 +4,38 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/therocode/werewolf/werewolf/roles"
+	"github.com/therocode/werewolf/werewolf/logic"
+	"github.com/therocode/werewolf/werewolf/logic/components"
+
 	"github.com/therocode/werewolf/werewolf/timeline"
 )
 
-type testGame struct {
+type TestGame struct {
 	run      bool
 	timeline []timeline.Event
 	players  map[string]string
-	base     *roles.Base
-	roles    map[string]roles.Role
+	base     *logic.Base
+	roles    map[string]logic.Role
 }
 
-func NewTestGame() *testGame {
-	instance := &testGame{}
+func NewTestGame() *TestGame {
+	instance := &TestGame{}
 	instance.run = true
-	instance.base = roles.NewBase(instance, instance)
-	instance.roles = map[string]roles.Role{}
+	instance.base = logic.NewBase(instance, instance)
+	instance.roles = map[string]logic.Role{}
 	instance.players = map[string]string{}
 	return instance
 }
 
-func (instance *testGame) AddRole(role roles.Role) {
+func (instance *TestGame) AddRole(role logic.Role) {
 	instance.roles[role.Name()] = role
 }
 
-func (instance *testGame) AddPlayer(name string, roleName string) {
+func (instance *TestGame) AddPlayer(name string, roleName string) {
 	instance.players[name] = roleName
 }
 
-func (instance *testGame) SendToChannel(format string, params ...interface{}) {
+func (instance *TestGame) SendToChannel(format string, params ...interface{}) {
 	if len(params) == 0 {
 		fmt.Print(format + "\n")
 	} else {
@@ -41,7 +43,16 @@ func (instance *testGame) SendToChannel(format string, params ...interface{}) {
 	}
 }
 
-func (instance *testGame) getRoleSet() map[timeline.Generator]bool {
+func (instance *TestGame) SendToPlayer(player string, format string, params ...interface{}) {
+	fmt.Printf("PM for %s: ", player)
+	if len(params) == 0 {
+		fmt.Print(format + "\n")
+	} else {
+		fmt.Printf(format+"\n", params...)
+	}
+}
+
+func (instance *TestGame) getGeneratorSet() map[timeline.Generator]bool {
 	result := map[timeline.Generator]bool{}
 	result[instance.base] = true
 	for _, role := range instance.roles {
@@ -50,9 +61,8 @@ func (instance *testGame) getRoleSet() map[timeline.Generator]bool {
 	return result
 }
 
-func (instance *testGame) GetRoles() []roles.Role {
-	roles := []roles.Role{}
-	roles = append(roles, instance.base)
+func (instance *TestGame) GetRoles() []logic.Role {
+	roles := []logic.Role{}
 	for _, roleName := range instance.players {
 		role := instance.roles[roleName]
 		roles = append(roles, role)
@@ -60,11 +70,11 @@ func (instance *testGame) GetRoles() []roles.Role {
 	return roles
 }
 
-func (instance *testGame) EndGame() {
+func (instance *TestGame) EndGame() {
 	instance.run = false
 }
 
-func (instance *testGame) RequestName(requestFrom string, promptFormat string, params ...interface{}) string {
+func (instance *TestGame) RequestName(requestFrom string, promptFormat string, params ...interface{}) string {
 	fmt.Printf(promptFormat, params...)
 	var text string
 	fmt.Scanln(&text)
@@ -72,30 +82,17 @@ func (instance *testGame) RequestName(requestFrom string, promptFormat string, p
 	return text
 }
 
-func (instance *testGame) IsPlayer(name string) bool {
+func (instance *TestGame) IsPlayer(name string) bool {
 	_, contains := instance.players[name]
 	return contains
 }
 
-func (instance *testGame) IsRole(name string, roleName string) bool {
+func (instance *TestGame) IsRole(name string, roleName string) bool {
 	playerRoleName, _ := instance.players[name]
 	return roleName == playerRoleName
 }
 
-func (instance *testGame) isVillager(name string) bool {
-	roleName, contains := instance.players[name]
-	if !contains {
-		return false
-	}
-
-	if roleName != "villager" {
-		return false
-	}
-
-	return true
-}
-
-func (instance *testGame) CountRole(roleName string) int {
+func (instance *TestGame) CountRole(roleName string) int {
 	roleCount := 0
 	for _, playerRoleName := range instance.players {
 		if roleName == playerRoleName {
@@ -105,17 +102,29 @@ func (instance *testGame) CountRole(roleName string) int {
 	return roleCount
 }
 
-func (instance *testGame) Kill(player string) {
+func (instance *TestGame) CountComponent(component components.Component) int {
+	count := 0
+	for _, roleName := range instance.players {
+		role := instance.roles[roleName]
+		if role.HasComponent(component) {
+			count++
+		}
+	}
+	return count
+}
+
+func (instance *TestGame) Kill(player string) {
 	delete(instance.players, player)
 	fmt.Printf("%s was killed!\n", player)
 }
 
-func (instance *testGame) RunGame() {
+func (instance *TestGame) RunGame() {
 	for instance.run {
 		// If there are no events in the timeline, generate more
 		if len(instance.timeline) == 0 {
 			log.Printf("Timeline is empty, generating events.")
-			instance.timeline = timeline.Generate(instance.getRoleSet())
+			instance.timeline = timeline.Generate(instance.getGeneratorSet())
+			log.Printf("Generated timeline: %s", instance.timeline)
 			if len(instance.timeline) == 0 {
 				panic("Couldn't generate a timeline!")
 			}

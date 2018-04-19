@@ -1,11 +1,6 @@
 package werewolf
 
-import (
-	"fmt"
-
-	"github.com/therocode/werewolf/werewolf/roles"
-)
-
+/*
 func (instance *Game) playerJoin(nick string) {
 	instance.players[nick] = &Player{instance.irc, nick, &roles.Villager{}}
 	instance.players[nick].message("welcome. The main game channel is '%s'. Be sure to join", instance.mainChannel.name)
@@ -21,3 +16,4 @@ func (instance *Game) getPlayer(nick string) *Player {
 func (player *Player) message(msg string, args ...interface{}) {
 	player.irc.Privmsg(player.name, fmt.Sprintf(msg, args...))
 }
+*/

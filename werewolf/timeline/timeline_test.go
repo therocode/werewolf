@@ -40,6 +40,18 @@ func (Werewolf) Generate() []Event {
 	}
 }
 
+type Villager struct{}
+
+func (Villager) Generate() []Event {
+	return []Event{
+		Event{
+			"lynch",
+			map[string]bool{"day_starts": true},
+			map[string]bool{},
+		},
+	}
+}
+
 type Doctor struct{}
 
 func (Doctor) Generate() []Event {
@@ -132,6 +144,28 @@ func TestTimelineWithGameAndWerewolfAndDoctor(t *testing.T) {
 		"werewolves_kill",
 		"doctor_heals",
 		"day_starts",
+	}
+	verifyTimeline(t, result, expected)
+}
+
+func TestTimelineWithGameAndWerewolfAndVillager(t *testing.T) {
+	// GIVEN
+	generators := map[Generator]bool{
+		Game{}:     true,
+		Werewolf{}: true,
+		Villager{}: true,
+	}
+
+	// WHEN
+	result := Generate(generators)
+
+	// THEN
+	expected := []string{
+		"night_starts",
+		"werewolves_see_each_other",
+		"werewolves_kill",
+		"day_starts",
+		"lynch",
 	}
 	verifyTimeline(t, result, expected)
 }
