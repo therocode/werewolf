@@ -58,13 +58,15 @@ func (instance *Werewolf) Handle(player string, event timeline.Event, hasTermina
 		neededKillVotes := instance.data.CountComponent(instance.killVote)
 		log.Printf("%d people voted, need %d votes", totalKillVoteCount, neededKillVotes)
 		if totalKillVoteCount == neededKillVotes {
+			mostVoted := instance.killVote.MostVoted()
 			instance.data.Kill(instance.killVote.MostVoted())
+			instance.communication.SendToChannel("%s was killed!", mostVoted)
 		}
 	case "day_starts":
 		instance.lynchVote.Reset()
 	case "lynch":
 		vote := instance.getLynchVote(player)
-		instance.communication.SendToChannel("%s wanted to lynch %s", player, vote)
+		instance.communication.SendToChannel("%s voted to lynch %s", player, vote)
 
 		instance.lynchVote.Vote(vote)
 
@@ -72,7 +74,9 @@ func (instance *Werewolf) Handle(player string, event timeline.Event, hasTermina
 		neededLynchVotes := instance.data.CountComponent(instance.lynchVote)
 		log.Printf("%d people voted, need %d votes", totalLynchVoteCount, neededLynchVotes)
 		if totalLynchVoteCount == neededLynchVotes {
+			mostVoted := instance.lynchVote.MostVoted()
 			instance.data.Kill(instance.lynchVote.MostVoted())
+			instance.communication.SendToChannel("%s was lynched!", mostVoted)
 		}
 	}
 	hasTerminated <- true
@@ -100,6 +104,8 @@ func (instance *Werewolf) getLynchVote(player string) string {
 			instance.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
 		} else if !instance.data.IsPlayer(vote) {
 			instance.communication.SendToPlayer(player, "That is not a living player!")
+		} else if instance.data.IsRole(vote, "werewolf") {
+			instance.communication.SendToPlayer(player, "You cannot lynch another werewolf!")
 		} else {
 			return vote
 		}

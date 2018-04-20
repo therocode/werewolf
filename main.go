@@ -1,15 +1,22 @@
 package main
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"time"
 
+	"github.com/therocode/werewolf/werewolf"
+	"github.com/therocode/werewolf/werewolf/irc"
+	"github.com/therocode/werewolf/werewolf/ircgame"
 	"github.com/therocode/werewolf/werewolf/logic/components"
 	"github.com/therocode/werewolf/werewolf/logic/roles"
 	"github.com/therocode/werewolf/werewolf/testgame"
+	ircevent "github.com/thoj/go-ircevent"
 )
 
-const channel = "#wolfadmin"
+const adminChannel = "#wolfadmin"
 const serverssl = "irc.boxbox.org:6697"
 
 func runTestGame() {
@@ -35,48 +42,70 @@ func runTestGame() {
 	game.RunGame()
 }
 
-func main() {
-	runTestGame()
-	return
-	/*
-		rand.Seed(time.Now().UTC().UnixNano())
+func runIrcGame() {
+	rand.Seed(time.Now().UTC().UnixNano())
 
-		ircnick1 := "ulfmann"
-		irccon := irc.IRC(ircnick1, "Ulf Mannerstrom")
+	ircnick1 := "ulfmann"
+	irccon := ircevent.IRC(ircnick1, "Ulf Mannerstrom")
 
-		var config werewolf.Config //later load from file or something
-		var werewolfInstance *werewolf.Game
+	//var config werewolf.Config //later load from file or something
+	//var werewolfInstance *werewolf.Game
 
-		irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
-		irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
-		irccon.UseTLS = true
-		irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-		irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
-		irccon.AddCallback("366", func(e *irc.Event) {})
-		irccon.AddCallback("PRIVMSG", func(e *irc.Event) {
+	var communication *irc.Irc
+	var game *ircgame.IrcGame
 
-			if cmd, err := werewolf.ParseCommand(e.Arguments[0], e.Nick, e.Message()); err == nil {
-				if cmd.Command == "newgame" {
-					if werewolfInstance == nil {
-						werewolfInstance = werewolf.NewWerewolfGame(irccon, config, "#wolfgame", cmd.Nick) //parse #wolfgame from message or randomize
-					} else {
-						irccon.Privmsgf(channel, "Cannot start new game with game already in progress")
-					}
+	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
+	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
+	irccon.UseTLS = true
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	irccon.AddCallback("001", func(e *ircevent.Event) { irccon.Join(adminChannel) })
+	irccon.AddCallback("366", func(e *ircevent.Event) {})
+	irccon.AddCallback("PRIVMSG", func(e *ircevent.Event) {
+		if cmd, err := werewolf.ParseCommand(e.Arguments[0], e.Nick, e.Message()); err == nil {
+			if cmd.Command == "newgame" {
+				if game == nil {
+					communication = irc.NewIrc(irccon, "#"+cmd.Args[0])
+					game = newIrcGame(communication)
 				} else {
-					if werewolfInstance != nil {
-						werewolfInstance.HandleCommand(cmd)
-					} else {
-						irccon.Privmsg(channel, "Start a new game with !newgame first")
-					}
+					irccon.Privmsgf(adminChannel, "Cannot start new game with game already in progress")
+				}
+			} else if game == nil {
+				irccon.Privmsgf(adminChannel, "Start a new game with !newgame [channel] first!")
+			} else {
+				switch cmd.Command {
+				case "join":
+					game.AddPlayer(e.Nick, cmd.Args[0])
+				case "start":
+					go game.Run()
 				}
 			}
-		})
-		err := irccon.Connect(serverssl)
-		if err != nil {
-			log.Printf("Err connecting: %s", err)
-			return
+		} else {
+			if communication != nil {
+				communication.Respond(e.Nick, e.Message())
+			}
 		}
+	})
+	err := irccon.Connect(serverssl)
+	if err != nil {
+		log.Printf("Err connecting: %s", err)
+		return
+	}
 
-		irccon.Loop()
-	*/
+	irccon.Loop()
+}
+
+func newIrcGame(communication *irc.Irc) *ircgame.IrcGame {
+	game := ircgame.NewIrcGame(communication)
+
+	lynchVote := components.NewVote("lynch")
+	killVote := components.NewVote("kill")
+
+	game.AddRole(roles.NewVillager(communication, game, lynchVote))
+	game.AddRole(roles.NewWerewolf(communication, game, killVote, lynchVote))
+
+	return game
+}
+
+func main() {
+	runIrcGame()
 }

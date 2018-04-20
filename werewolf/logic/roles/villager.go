@@ -48,6 +48,7 @@ func (instance *Villager) Handle(player string, event timeline.Event, hasTermina
 		instance.lynchVote.Reset()
 	case "lynch":
 		vote := instance.getLynchVote(player)
+		instance.communication.SendToChannel("%s voted to lynch %s", player, vote)
 
 		instance.lynchVote.Vote(vote)
 
@@ -55,7 +56,9 @@ func (instance *Villager) Handle(player string, event timeline.Event, hasTermina
 		neededVotes := instance.data.CountComponent(instance.lynchVote)
 		log.Printf("%d people voted, need %d votes", voteCount, neededVotes)
 		if voteCount == neededVotes {
+			mostVoted := instance.lynchVote.MostVoted()
 			instance.data.Kill(instance.lynchVote.MostVoted())
+			instance.communication.SendToChannel("%s was lynched!", mostVoted)
 		}
 	}
 
