@@ -3,7 +3,6 @@ package logic
 import (
 	"log"
 
-	"github.com/therocode/werewolf/werewolf/logic/components"
 	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
@@ -15,7 +14,7 @@ type Game struct {
 	roles    map[string]Role
 }
 
-// Create new Game instance
+// NewGame creates new Game instance
 func NewGame(data Data, communication Communication) *Game {
 	instance := &Game{}
 	instance.roles = map[string]Role{}
@@ -33,16 +32,19 @@ func (instance *Game) getGeneratorSet() map[timeline.Generator]bool {
 	return result
 }
 
+// AddRole adds a role to the game role set
 func (instance *Game) AddRole(role Role) {
 	log.Printf("Added role %s", role.Name())
 	instance.roles[role.Name()] = role
 }
 
+// AddPlayer adds a player to the game
 func (instance *Game) AddPlayer(name string, roleName string) {
 	log.Printf("Added player %s with role %s", name, roleName)
 	instance.players[name] = roleName
 }
 
+// GetRoles gets the role of each player (duplicates may occur)
 func (instance *Game) GetRoles() []Role {
 	roles := []Role{}
 	for _, roleName := range instance.players {
@@ -52,17 +54,20 @@ func (instance *Game) GetRoles() []Role {
 	return roles
 }
 
+// IsPlayer returns true if the supplied string is the name of a player in the game
 func (instance *Game) IsPlayer(name string) bool {
 	_, contains := instance.players[name]
 	return contains
 }
 
+// IsRole returns true if 'roleName' is the name of the role of a player with the name 'name'
 func (instance *Game) IsRole(name string, roleName string) bool {
 	playerRoleName, _ := instance.players[name]
 	return roleName == playerRoleName
 }
 
-func (instance *Game) CountComponent(component components.Component) int {
+// CountComponent returns the number of players with a role with the specified component
+func (instance *Game) CountComponent(component Component) int {
 	count := 0
 	for _, roleName := range instance.players {
 		role := instance.roles[roleName]
@@ -73,6 +78,7 @@ func (instance *Game) CountComponent(component components.Component) int {
 	return count
 }
 
+// CountRoles returns the number of the specified role in the game
 func (instance *Game) CountRoles(roleName string) int {
 	count := 0
 	for _, playerRoleName := range instance.players {
@@ -83,10 +89,12 @@ func (instance *Game) CountRoles(roleName string) int {
 	return count
 }
 
+// Kill a player
 func (instance *Game) Kill(player string) {
 	delete(instance.players, player)
 }
 
+// GetPlayersWithRole gets a list of all player names with the specified role
 func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	result := []string{}
 	for player, playerRoleName := range instance.players {
@@ -97,6 +105,7 @@ func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	return result
 }
 
+// Run the game
 func (instance *Game) Run() {
 	// If there are no events in the timeline, generate more
 	if len(instance.timeline) == 0 {

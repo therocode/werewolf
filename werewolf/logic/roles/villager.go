@@ -30,7 +30,7 @@ func (*Villager) Name() string {
 }
 
 // HasComponent implements Role interface
-func (villager *Villager) HasComponent(component components.Component) bool {
+func (villager *Villager) HasComponent(component logic.Component) bool {
 	return villager.lynchVote.Name() == component.Name()
 }
 

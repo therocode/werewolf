@@ -1,13 +1,10 @@
 package logic
 
-import (
-	"github.com/therocode/werewolf/werewolf/logic/components"
-)
-
+// Data interface for the game logic
 type Data interface {
 	GetRoles() []Role
 	EndGame()
-	CountComponent(component components.Component) int
+	CountComponent(component Component) int
 	CountRoles(roleName string) int
 	Kill(player string)
 	IsPlayer(name string) bool

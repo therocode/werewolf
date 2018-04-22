@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"github.com/therocode/werewolf/werewolf/logic/components"
 	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
@@ -17,5 +16,5 @@ type Role interface {
 	Handle(player string, event timeline.Event, hasTerminated chan bool)
 
 	// HasComponent checks if the role has the specified component
-	HasComponent(components.Component) bool
+	HasComponent(Component) bool
 }

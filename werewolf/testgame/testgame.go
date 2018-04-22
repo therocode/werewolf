@@ -2,7 +2,6 @@ package testgame
 
 import (
 	"github.com/therocode/werewolf/werewolf/logic"
-	"github.com/therocode/werewolf/werewolf/logic/components"
 )
 
 // TestGame is a local command-line test implementation of the game
@@ -61,7 +60,7 @@ func (instance *TestGame) IsRole(name string, roleName string) bool {
 }
 
 // CountComponent implements the Data interface
-func (instance *TestGame) CountComponent(component components.Component) int {
+func (instance *TestGame) CountComponent(component logic.Component) int {
 	return instance.game.CountComponent(component)
 }
 

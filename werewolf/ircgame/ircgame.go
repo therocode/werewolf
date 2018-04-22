@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/therocode/werewolf/werewolf/logic"
-	"github.com/therocode/werewolf/werewolf/logic/components"
 )
 
 const (
@@ -129,7 +128,7 @@ func (instance *IrcGame) IsRole(name string, roleName string) bool {
 }
 
 // CountComponent implements the Data interface
-func (instance *IrcGame) CountComponent(component components.Component) int {
+func (instance *IrcGame) CountComponent(component logic.Component) int {
 	return instance.game.CountComponent(component)
 }
 

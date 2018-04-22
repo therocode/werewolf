@@ -34,7 +34,7 @@ func (*Werewolf) Name() string {
 }
 
 // HasComponent implements Role interface
-func (werewolf *Werewolf) HasComponent(component components.Component) bool {
+func (werewolf *Werewolf) HasComponent(component logic.Component) bool {
 	return werewolf.lynchVote.Name() == component.Name() || werewolf.killVote.Name() == component.Name()
 }
 
