@@ -16,21 +16,32 @@ const (
 
 // IrcGame is an IRC-based implementation of the game
 type IrcGame struct {
-	state   string
-	game    *logic.Game
-	players []string
+	state         string
+	communication logic.Communication
+	game          *logic.Game
+	players       []string
 }
 
 // NewIrcGame creates a new instance of IrcGame
 func NewIrcGame(communication logic.Communication) *IrcGame {
 	instance := &IrcGame{}
 	instance.state = gameStateLobby
+	instance.communication = communication
 	instance.game = logic.NewGame(instance, communication)
+	instance.players = []string{}
 	return instance
 }
 
 // Run the game
 func (instance *IrcGame) Run() {
+	// Recover from a general panic by ending the game and printing the error message
+	defer func() {
+		if r := recover(); r != nil {
+			instance.EndGame()
+			instance.communication.SendToChannel("Game was terminated, please start a new one: %s", r)
+		}
+	}()
+
 	instance.assignRoles()
 
 	instance.state = gameStateStarted
@@ -49,6 +60,7 @@ func (instance *IrcGame) AddRole(role logic.Role) {
 // AddPlayer adds a player to the game
 func (instance *IrcGame) AddPlayer(name string) {
 	log.Printf("%s joined the game", name)
+	instance.communication.SendToChannel("%s joined the game", name)
 	instance.players = append(instance.players, name)
 }
 
@@ -85,6 +97,11 @@ func (instance *IrcGame) assignRoles() {
 		// Add the player with that role
 		instance.game.AddPlayer(player, role)
 	}
+}
+
+// IsFinished returns true if the game is over
+func (instance *IrcGame) IsFinished() bool {
+	return instance.state == gameStateGameOver
 }
 
 /*

@@ -72,7 +72,7 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 
 func (villager *Villager) getLynchVote(player string) string {
 	for {
-		vote := villager.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
+		vote := villager.communication.Request(player, "%s, who do you want to lynch?: ", player)
 
 		if vote == player {
 			villager.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")

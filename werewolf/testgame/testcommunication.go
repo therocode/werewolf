@@ -29,8 +29,8 @@ func (instance *TestCommunication) SendToPlayer(player string, format string, pa
 	}
 }
 
-// RequestName implements the Communication interface
-func (instance *TestCommunication) RequestName(requestFrom string, promptFormat string, params ...interface{}) string {
+// Request implements the Communication interface
+func (instance *TestCommunication) Request(requestFrom string, promptFormat string, params ...interface{}) string {
 	fmt.Printf(promptFormat+"\n", params...)
 	var text string
 	fmt.Scanln(&text)

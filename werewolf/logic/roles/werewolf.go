@@ -98,7 +98,7 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 
 func (werewolf *Werewolf) getKillVote(player string) string {
 	for {
-		vote := werewolf.communication.RequestName(player, "%s, who do you want to kill?: ", player)
+		vote := werewolf.communication.Request(player, "%s, who do you want to kill?: ", player)
 
 		if vote == player {
 			werewolf.communication.SendToPlayer(player, "You cannot kill yourself, sorry.")
@@ -112,7 +112,7 @@ func (werewolf *Werewolf) getKillVote(player string) string {
 
 func (werewolf *Werewolf) getLynchVote(player string) string {
 	for {
-		vote := werewolf.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
+		vote := werewolf.communication.Request(player, "%s, who do you want to lynch?: ", player)
 
 		if vote == player {
 			werewolf.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")

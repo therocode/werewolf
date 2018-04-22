@@ -7,8 +7,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/therocode/werewolf/werewolf"
-	"github.com/therocode/werewolf/werewolf/irc"
 	"github.com/therocode/werewolf/werewolf/ircgame"
 	"github.com/therocode/werewolf/werewolf/logic/components"
 	"github.com/therocode/werewolf/werewolf/logic/roles"
@@ -16,7 +14,7 @@ import (
 	ircevent "github.com/thoj/go-ircevent"
 )
 
-const adminChannel = "#wolfadmin"
+const lobbyChannel = "#wolfadmin"
 const serverssl = "irc.boxbox.org:6697"
 
 func runTestGame() {
@@ -50,39 +48,16 @@ func runIrcGame() {
 	ircnick1 := "ulfmann"
 	irccon := ircevent.IRC(ircnick1, "Ulf Mannerstrom")
 
-	var communication *irc.Irc
-	var game *ircgame.IrcGame
+	lobby := ircgame.NewIrcLobby(lobbyChannel, irccon)
 
 	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
 	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *ircevent.Event) { irccon.Join(adminChannel) })
+	irccon.AddCallback("001", func(e *ircevent.Event) { irccon.Join(lobbyChannel) })
 	irccon.AddCallback("366", func(e *ircevent.Event) {})
 	irccon.AddCallback("PRIVMSG", func(e *ircevent.Event) {
-		if cmd, err := werewolf.ParseCommand(e.Arguments[0], e.Nick, e.Message()); err == nil {
-			if cmd.Command == "newgame" {
-				if game == nil {
-					communication = irc.NewIrc(irccon, "#"+cmd.Args[0])
-					game = newIrcGame(communication)
-				} else {
-					irccon.Privmsgf(adminChannel, "Cannot start new game with game already in progress")
-				}
-			} else if game == nil {
-				irccon.Privmsgf(adminChannel, "Start a new game with !newgame [channel] first!")
-			} else {
-				switch cmd.Command {
-				case "join":
-					game.AddPlayer(e.Nick)
-				case "start":
-					go game.Run()
-				}
-			}
-		} else {
-			if communication != nil {
-				communication.Respond(e.Nick, e.Message())
-			}
-		}
+		lobby.HandleMessage(e.Arguments[0], e.Nick, e.Message())
 	})
 	err := irccon.Connect(serverssl)
 	if err != nil {
@@ -91,20 +66,6 @@ func runIrcGame() {
 	}
 
 	irccon.Loop()
-}
-
-func newIrcGame(communication *irc.Irc) *ircgame.IrcGame {
-	game := ircgame.NewIrcGame(communication)
-
-	communication.SendToChannel("New game started!")
-
-	lynchVote := components.NewVote("lynch")
-	killVote := components.NewVote("kill")
-
-	game.AddRole(roles.NewVillager(game, communication, lynchVote))
-	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
-
-	return game
 }
 
 func main() {
