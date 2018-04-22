@@ -9,6 +9,7 @@ import (
 )
 
 type gameEntry struct {
+	owner         string
 	communication *irc.Irc
 	game          *IrcGame
 }
@@ -59,17 +60,23 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 
 			lobby.message("Starting a new game in %s", cmd.Args[0])
 			communication := irc.NewIrc(lobby.irccon, cmd.Args[0])
-			lobby.games[cmd.Args[0]] = gameEntry{communication, newIrcGame(communication)}
+			lobby.games[cmd.Args[0]] = gameEntry{nick, communication, newIrcGame(communication)}
 			lobby.irccon.Join(cmd.Args[0])
 		} else if channel == lobby.channel {
 			lobby.message("%s is not a recognized command in the lobby channel. Join a game channel to run game-specific commands.", cmd.Command)
 		} else {
 			game := lobby.games[channel].game
+			owner := lobby.games[channel].owner
 
 			switch cmd.Command {
 			case "join":
 				game.AddPlayer(nick)
 			case "start":
+				if nick != owner {
+					game.communication.SendToChannel("Only the owner, %s, can start the game", owner)
+					return
+				}
+
 				if len(game.players) < 4 {
 					game.communication.SendToChannel("Cannot start game with fewer than 4 players!")
 					return
