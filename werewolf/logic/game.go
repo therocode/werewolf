@@ -4,9 +4,10 @@ import (
 	"log"
 
 	"github.com/therocode/werewolf/werewolf/logic/components"
-	"github.com/therocode/werewolf/werewolf/timeline"
+	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
+// Game contains basic game functionality
 type Game struct {
 	timeline []timeline.Event
 	players  map[string]string
@@ -14,11 +15,12 @@ type Game struct {
 	roles    map[string]Role
 }
 
-func NewGame(base *Base) *Game {
+// Create new Game instance
+func NewGame(data Data, communication Communication) *Game {
 	instance := &Game{}
 	instance.roles = map[string]Role{}
 	instance.players = map[string]string{}
-	instance.base = base
+	instance.base = NewBase(data, communication)
 	return instance
 }
 
@@ -32,10 +34,12 @@ func (instance *Game) getGeneratorSet() map[timeline.Generator]bool {
 }
 
 func (instance *Game) AddRole(role Role) {
+	log.Printf("Added role %s", role.Name())
 	instance.roles[role.Name()] = role
 }
 
 func (instance *Game) AddPlayer(name string, roleName string) {
+	log.Printf("Added player %s with role %s", name, roleName)
 	instance.players[name] = roleName
 }
 
@@ -69,8 +73,28 @@ func (instance *Game) CountComponent(component components.Component) int {
 	return count
 }
 
+func (instance *Game) CountRoles(roleName string) int {
+	count := 0
+	for _, playerRoleName := range instance.players {
+		if roleName == playerRoleName {
+			count++
+		}
+	}
+	return count
+}
+
 func (instance *Game) Kill(player string) {
 	delete(instance.players, player)
+}
+
+func (instance *Game) GetPlayersWithRole(roleName string) []string {
+	result := []string{}
+	for player, playerRoleName := range instance.players {
+		if roleName == playerRoleName {
+			result = append(result, player)
+		}
+	}
+	return result
 }
 
 func (instance *Game) Run() {
@@ -101,9 +125,7 @@ func (instance *Game) Run() {
 	}
 
 	// Block until all role handlers have finished
-	for name, channel := range hasTerminated {
-		log.Printf("Waiting for %s's action to terminate...", name)
+	for _, channel := range hasTerminated {
 		<-channel
-		log.Printf("%s's action terminated.", name)
 	}
 }

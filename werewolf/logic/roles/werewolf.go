@@ -2,21 +2,24 @@ package roles
 
 import (
 	"log"
+	"strings"
 
 	"github.com/therocode/werewolf/werewolf/logic"
 	"github.com/therocode/werewolf/werewolf/logic/components"
 
-	"github.com/therocode/werewolf/werewolf/timeline"
+	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
+// Werewolf role
 type Werewolf struct {
-	communication logic.Communication
 	data          logic.Data
+	communication logic.Communication
 	killVote      *components.Vote
 	lynchVote     *components.Vote
 }
 
-func NewWerewolf(communication logic.Communication, data logic.Data, killVote *components.Vote, lynchVote *components.Vote) *Werewolf {
+// NewWerewolf creates a new werewolf instance
+func NewWerewolf(data logic.Data, communication logic.Communication, killVote *components.Vote, lynchVote *components.Vote) *Werewolf {
 	instance := &Werewolf{}
 	instance.communication = communication
 	instance.data = data
@@ -25,87 +28,98 @@ func NewWerewolf(communication logic.Communication, data logic.Data, killVote *c
 	return instance
 }
 
-func (role *Werewolf) Name() string {
+// Name implements Role interface
+func (*Werewolf) Name() string {
 	return "werewolf"
 }
 
-func (this *Werewolf) HasComponent(component components.Component) bool {
-	return this.lynchVote.Name() == component.Name() || this.killVote.Name() == component.Name()
+// HasComponent implements Role interface
+func (werewolf *Werewolf) HasComponent(component components.Component) bool {
+	return werewolf.lynchVote.Name() == component.Name() || werewolf.killVote.Name() == component.Name()
 }
 
+// Generate implements Role interface
 func (*Werewolf) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
-			"werewolves_kill",
+			"werewolves_see_each_other",
 			map[string]bool{"night_starts": true},
+			map[string]bool{},
+		},
+		timeline.Event{
+			"werewolves_kill",
+			map[string]bool{"werewolves_see_each_other": true},
 			map[string]bool{"day_starts": true},
 		},
 	}
 }
 
-func (instance *Werewolf) Handle(player string, event timeline.Event, hasTerminated chan bool) {
+// Handle implements Role interface
+func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTerminated chan bool) {
 	switch event.Name {
 	case "night_starts":
-		instance.killVote.Reset()
-		instance.communication.SendToChannel("A werewolf (%s) prowls.", player)
+		werewolf.killVote.Reset()
+	case "werewolves_see_each_other":
+		werewolves := werewolf.data.GetPlayersWithRole(werewolf.Name())
+		werewolf.communication.SendToPlayer(player, "The werewolves are: %s", strings.Join(werewolves, ", "))
 	case "werewolves_kill":
-		vote := instance.getKillVote(player)
-		instance.communication.SendToChannel("%s wanted to kill %s", player, vote)
+		vote := werewolf.getKillVote(player)
+		log.Printf("%s wanted to kill %s", player, vote)
 
-		instance.killVote.Vote(vote)
+		werewolf.killVote.Vote(vote)
 
-		totalKillVoteCount := instance.killVote.TotalVoteCount()
-		neededKillVotes := instance.data.CountComponent(instance.killVote)
+		totalKillVoteCount := werewolf.killVote.TotalVoteCount()
+		neededKillVotes := werewolf.data.CountComponent(werewolf.killVote)
 		log.Printf("%d people voted, need %d votes", totalKillVoteCount, neededKillVotes)
 		if totalKillVoteCount == neededKillVotes {
-			mostVoted := instance.killVote.MostVoted()
-			instance.data.Kill(instance.killVote.MostVoted())
-			instance.communication.SendToChannel("%s was killed!", mostVoted)
+			mostVoted := werewolf.killVote.MostVoted()
+			werewolf.data.Kill(werewolf.killVote.MostVoted())
+			werewolf.communication.SendToChannel("%s was killed!", mostVoted)
 		}
 	case "day_starts":
-		instance.lynchVote.Reset()
+		werewolf.lynchVote.Reset()
 	case "lynch":
-		vote := instance.getLynchVote(player)
-		instance.communication.SendToChannel("%s voted to lynch %s", player, vote)
+		vote := werewolf.getLynchVote(player)
+		werewolf.communication.SendToChannel("%s voted to lynch %s", player, vote)
 
-		instance.lynchVote.Vote(vote)
+		werewolf.lynchVote.Vote(vote)
 
-		totalLynchVoteCount := instance.lynchVote.TotalVoteCount()
-		neededLynchVotes := instance.data.CountComponent(instance.lynchVote)
+		totalLynchVoteCount := werewolf.lynchVote.TotalVoteCount()
+		neededLynchVotes := werewolf.data.CountComponent(werewolf.lynchVote)
 		log.Printf("%d people voted, need %d votes", totalLynchVoteCount, neededLynchVotes)
 		if totalLynchVoteCount == neededLynchVotes {
-			mostVoted := instance.lynchVote.MostVoted()
-			instance.data.Kill(instance.lynchVote.MostVoted())
-			instance.communication.SendToChannel("%s was lynched!", mostVoted)
+			mostVoted := werewolf.lynchVote.MostVoted()
+			werewolf.data.Kill(werewolf.lynchVote.MostVoted())
+			werewolf.communication.SendToChannel("%s was lynched!", mostVoted)
 		}
 	}
 	hasTerminated <- true
 }
 
-func (instance *Werewolf) getKillVote(player string) string {
+func (werewolf *Werewolf) getKillVote(player string) string {
 	for {
-		vote := instance.communication.RequestName(player, "%s, who do you want to kill?: ", player)
+		vote := werewolf.communication.RequestName(player, "%s, who do you want to kill?: ", player)
 
 		if vote == player {
-			instance.communication.SendToPlayer(player, "You cannot kill yourself, sorry.")
-		} else if !instance.data.IsRole(vote, "villager") {
-			instance.communication.SendToPlayer(player, "That is not a living villager!")
+			werewolf.communication.SendToPlayer(player, "You cannot kill yourself, sorry.")
+		} else if !werewolf.data.IsRole(vote, "villager") {
+			werewolf.communication.SendToPlayer(player, "That is not a living villager!")
 		} else {
 			return vote
 		}
 	}
 }
 
-func (instance *Werewolf) getLynchVote(player string) string {
+func (werewolf *Werewolf) getLynchVote(player string) string {
 	for {
-		vote := instance.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
+		vote := werewolf.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
 
 		if vote == player {
-			instance.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
-		} else if !instance.data.IsPlayer(vote) {
-			instance.communication.SendToPlayer(player, "That is not a living player!")
-		} else if instance.data.IsRole(vote, "werewolf") {
-			instance.communication.SendToPlayer(player, "You cannot lynch another werewolf!")
+			werewolf.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
+		} else if !werewolf.data.IsPlayer(vote) {
+			werewolf.communication.SendToPlayer(player, "That is not a living player!")
+		} else if werewolf.data.IsRole(vote, "werewolf") {
+			werewolf.communication.SendToPlayer(player, "You cannot lynch another werewolf!")
 		} else {
 			return vote
 		}

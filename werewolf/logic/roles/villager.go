@@ -5,16 +5,18 @@ import (
 
 	"github.com/therocode/werewolf/werewolf/logic"
 	"github.com/therocode/werewolf/werewolf/logic/components"
-	"github.com/therocode/werewolf/werewolf/timeline"
+	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
+// Villager role
 type Villager struct {
-	communication logic.Communication
 	data          logic.Data
+	communication logic.Communication
 	lynchVote     *components.Vote
 }
 
-func NewVillager(communication logic.Communication, data logic.Data, vote *components.Vote) *Villager {
+// NewVillager creates a new villager instance
+func NewVillager(data logic.Data, communication logic.Communication, vote *components.Vote) *Villager {
 	instance := &Villager{}
 	instance.communication = communication
 	instance.data = data
@@ -22,14 +24,17 @@ func NewVillager(communication logic.Communication, data logic.Data, vote *compo
 	return instance
 }
 
+// Name implements Role interface
 func (*Villager) Name() string {
 	return "villager"
 }
 
-func (this *Villager) HasComponent(component components.Component) bool {
-	return this.lynchVote.Name() == component.Name()
+// HasComponent implements Role interface
+func (villager *Villager) HasComponent(component components.Component) bool {
+	return villager.lynchVote.Name() == component.Name()
 }
 
+// Generate implements Role interface
 func (*Villager) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
@@ -40,39 +45,39 @@ func (*Villager) Generate() []timeline.Event {
 	}
 }
 
-func (instance *Villager) Handle(player string, event timeline.Event, hasTerminated chan bool) {
+// Handle implements Role interface
+func (villager *Villager) Handle(player string, event timeline.Event, hasTerminated chan bool) {
 	switch event.Name {
 	case "night_starts":
-		instance.communication.SendToChannel("A villager (%s) sleeps.", player)
 	case "day_starts":
-		instance.lynchVote.Reset()
+		villager.lynchVote.Reset()
 	case "lynch":
-		vote := instance.getLynchVote(player)
-		instance.communication.SendToChannel("%s voted to lynch %s", player, vote)
+		vote := villager.getLynchVote(player)
+		villager.communication.SendToChannel("%s voted to lynch %s", player, vote)
 
-		instance.lynchVote.Vote(vote)
+		villager.lynchVote.Vote(vote)
 
-		voteCount := instance.lynchVote.TotalVoteCount()
-		neededVotes := instance.data.CountComponent(instance.lynchVote)
+		voteCount := villager.lynchVote.TotalVoteCount()
+		neededVotes := villager.data.CountComponent(villager.lynchVote)
 		log.Printf("%d people voted, need %d votes", voteCount, neededVotes)
 		if voteCount == neededVotes {
-			mostVoted := instance.lynchVote.MostVoted()
-			instance.data.Kill(instance.lynchVote.MostVoted())
-			instance.communication.SendToChannel("%s was lynched!", mostVoted)
+			mostVoted := villager.lynchVote.MostVoted()
+			villager.data.Kill(villager.lynchVote.MostVoted())
+			villager.communication.SendToChannel("%s was lynched!", mostVoted)
 		}
 	}
 
 	hasTerminated <- true
 }
 
-func (instance *Villager) getLynchVote(player string) string {
+func (villager *Villager) getLynchVote(player string) string {
 	for {
-		vote := instance.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
+		vote := villager.communication.RequestName(player, "%s, who do you want to lynch?: ", player)
 
 		if vote == player {
-			instance.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
-		} else if !instance.data.IsPlayer(vote) {
-			instance.communication.SendToPlayer(player, "That is not a living player!")
+			villager.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
+		} else if !villager.data.IsPlayer(vote) {
+			villager.communication.SendToPlayer(player, "That is not a living player!")
 		} else {
 			return vote
 		}

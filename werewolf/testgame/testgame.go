@@ -1,91 +1,81 @@
 package testgame
 
 import (
-	"fmt"
-
 	"github.com/therocode/werewolf/werewolf/logic"
 	"github.com/therocode/werewolf/werewolf/logic/components"
 )
 
+// TestGame is a local command-line test implementation of the game
 type TestGame struct {
 	run  bool
 	game *logic.Game
 }
 
-func NewTestGame() *TestGame {
+// NewTestGame creates a new TestGame instance
+func NewTestGame(communication logic.Communication) *TestGame {
 	instance := &TestGame{}
 	instance.run = true
-	instance.game = logic.NewGame(logic.NewBase(instance, instance))
+	instance.game = logic.NewGame(instance, communication)
 	return instance
 }
 
-/*
- * Communication methods
- */
-
-func (instance *TestGame) SendToChannel(format string, params ...interface{}) {
-	if len(params) == 0 {
-		fmt.Print(format + "\n")
-	} else {
-		fmt.Printf(format+"\n", params...)
+// RunGame runs the game
+func (instance *TestGame) RunGame() {
+	for instance.run {
+		instance.game.Run()
 	}
 }
 
-func (instance *TestGame) SendToPlayer(player string, format string, params ...interface{}) {
-	fmt.Printf("PM for %s: ", player)
-	if len(params) == 0 {
-		fmt.Print(format + "\n")
-	} else {
-		fmt.Printf(format+"\n", params...)
-	}
+// AddRole adds a role to the game
+func (instance *TestGame) AddRole(role logic.Role) {
+	instance.game.AddRole(role)
 }
 
-func (instance *TestGame) RequestName(requestFrom string, promptFormat string, params ...interface{}) string {
-	fmt.Printf(promptFormat+"\n", params...)
-	var text string
-	fmt.Scanln(&text)
-
-	return text
+// AddPlayer adds a player to the game
+func (instance *TestGame) AddPlayer(name string, roleName string) {
+	instance.game.AddPlayer(name, roleName)
 }
 
 /*
  * Data methods
  */
 
+// EndGame implements the Data interface
 func (instance *TestGame) EndGame() {
 	instance.run = false
 }
 
-func (instance *TestGame) AddRole(role logic.Role) {
-	instance.game.AddRole(role)
-}
-
-func (instance *TestGame) AddPlayer(name string, roleName string) {
-	instance.game.AddPlayer(name, roleName)
-}
-
+// GetRoles implements the Data interface
 func (instance *TestGame) GetRoles() []logic.Role {
 	return instance.game.GetRoles()
 }
 
+// IsPlayer implements the Data interface
 func (instance *TestGame) IsPlayer(name string) bool {
 	return instance.game.IsPlayer(name)
 }
 
+// IsRole implements the Data interface
 func (instance *TestGame) IsRole(name string, roleName string) bool {
 	return instance.game.IsRole(name, roleName)
 }
 
+// CountComponent implements the Data interface
 func (instance *TestGame) CountComponent(component components.Component) int {
 	return instance.game.CountComponent(component)
 }
 
+// CountRoles implements the Data interface
+func (instance *TestGame) CountRoles(roleName string) int {
+	return instance.game.CountRoles(roleName)
+}
+
+// Kill implements the Data interface
 func (instance *TestGame) Kill(player string) {
 	instance.game.Kill(player)
 }
 
-func (instance *TestGame) RunGame() {
-	for instance.run {
-		instance.game.Run()
-	}
+// GetPlayersWithRole implements the Data interface
+func (instance *TestGame) GetPlayersWithRole(roleName string) []string {
+	return instance.game.GetPlayersWithRole(roleName)
 }

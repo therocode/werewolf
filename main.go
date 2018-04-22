@@ -22,13 +22,15 @@ const serverssl = "irc.boxbox.org:6697"
 func runTestGame() {
 	log.SetOutput(ioutil.Discard)
 
-	game := testgame.NewTestGame()
+	communication := testgame.NewTestCommunication()
+
+	game := testgame.NewTestGame(communication)
 
 	lynchVote := components.NewVote("lynch")
 	killVote := components.NewVote("kill")
 
-	game.AddRole(roles.NewVillager(game, game, lynchVote))
-	game.AddRole(roles.NewWerewolf(game, game, killVote, lynchVote))
+	game.AddRole(roles.NewVillager(game, communication, lynchVote))
+	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
 
 	game.AddPlayer("ulf", "werewolf")
 	game.AddPlayer("wulf", "werewolf")
@@ -47,9 +49,6 @@ func runIrcGame() {
 
 	ircnick1 := "ulfmann"
 	irccon := ircevent.IRC(ircnick1, "Ulf Mannerstrom")
-
-	//var config werewolf.Config //later load from file or something
-	//var werewolfInstance *werewolf.Game
 
 	var communication *irc.Irc
 	var game *ircgame.IrcGame
@@ -74,7 +73,7 @@ func runIrcGame() {
 			} else {
 				switch cmd.Command {
 				case "join":
-					game.AddPlayer(e.Nick, cmd.Args[0])
+					game.AddPlayer(e.Nick)
 				case "start":
 					go game.Run()
 				}
@@ -97,15 +96,18 @@ func runIrcGame() {
 func newIrcGame(communication *irc.Irc) *ircgame.IrcGame {
 	game := ircgame.NewIrcGame(communication)
 
+	communication.SendToChannel("New game started!")
+
 	lynchVote := components.NewVote("lynch")
 	killVote := components.NewVote("kill")
 
-	game.AddRole(roles.NewVillager(communication, game, lynchVote))
-	game.AddRole(roles.NewWerewolf(communication, game, killVote, lynchVote))
+	game.AddRole(roles.NewVillager(game, communication, lynchVote))
+	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
 
 	return game
 }
 
 func main() {
 	runIrcGame()
+	//runTestGame()
 }

@@ -1,15 +1,16 @@
 package logic
 
 import (
-	"github.com/therocode/werewolf/werewolf/timeline"
+	"github.com/therocode/werewolf/werewolf/logic/timeline"
 )
 
-// Base is a special role used for managing the basic game events.
+// Base is a special timeline.Generator and event handler used for creating and managing basic game events.
 type Base struct {
 	data          Data
 	communication Communication
 }
 
+// NewBase creates new Base instance
 func NewBase(data Data, communication Communication) *Base {
 	base := &Base{}
 	base.data = data
@@ -17,6 +18,7 @@ func NewBase(data Data, communication Communication) *Base {
 	return base
 }
 
+// Generate implements the timeline.Generator interface
 func (*Base) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
@@ -32,6 +34,7 @@ func (*Base) Generate() []timeline.Event {
 	}
 }
 
+// Handle implements the Role interface
 func (instance *Base) Handle(player string, event timeline.Event, hasTerminated chan bool) {
 	if event.Name == "night_starts" {
 		// Prior to nightfall, check if enough villagers or all werewolves are dead
@@ -46,16 +49,8 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 
 func (instance *Base) checkIfGameIsOver() {
 	// Are all werewolves dead?
-	villagerCount := 0
-	werewolfCount := 0
-	for _, role := range instance.data.GetRoles() {
-		switch role.Name() {
-		case "villager":
-			villagerCount += 1
-		case "werewolf":
-			werewolfCount += 1
-		}
-	}
+	villagerCount := instance.data.CountRoles("villager")
+	werewolfCount := instance.data.CountRoles("werewolf")
 
 	if werewolfCount == 0 {
 		instance.communication.SendToChannel("All werewolves are dead! Villagers win!")
