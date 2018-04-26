@@ -1,8 +1,6 @@
 package testgame
 
-import (
-	"github.com/therocode/werewolf/werewolf/logic"
-)
+import "github.com/therocode/werewolf/logic"
 
 // TestGame is a local command-line test implementation of the game
 type TestGame struct {

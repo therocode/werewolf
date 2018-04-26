@@ -4,10 +4,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/therocode/werewolf/werewolf/logic"
-	"github.com/therocode/werewolf/werewolf/logic/components"
-
-	"github.com/therocode/werewolf/werewolf/logic/timeline"
+	"github.com/therocode/werewolf/logic"
+	"github.com/therocode/werewolf/logic/components"
+	"github.com/therocode/werewolf/logic/timeline"
 )
 
 // Werewolf role
@@ -63,65 +62,91 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 		werewolves := werewolf.data.GetPlayersWithRole(werewolf.Name())
 		werewolf.communication.SendToPlayer(player, "The werewolves are: %s", strings.Join(werewolves, ", "))
 	case "werewolves_kill":
-		vote := werewolf.getKillVote(player)
-		log.Printf("%s wanted to kill %s", player, vote)
+		vote, timeout := werewolf.getKillVote(player)
 
-		werewolf.killVote.Vote(vote)
+		if timeout {
+			werewolf.killVote.VoteBlank()
+			werewolf.communication.SendToPlayer(player, "You took too long to decide, so your vote will not count!")
+		} else {
+			log.Printf("%s wanted to kill %s", player, vote)
+			werewolf.killVote.Vote(vote)
+		}
 
 		totalKillVoteCount := werewolf.killVote.TotalVoteCount()
 		neededKillVotes := werewolf.data.CountComponent(werewolf.killVote)
 		log.Printf("%d people voted, need %d votes", totalKillVoteCount, neededKillVotes)
 		if totalKillVoteCount == neededKillVotes {
-			mostVoted := werewolf.killVote.MostVoted()
-			werewolf.data.Kill(werewolf.killVote.MostVoted())
-			werewolf.communication.SendToChannel("%s was killed!", mostVoted)
+			mostVoted, noVotes := werewolf.killVote.MostVoted()
+
+			if noVotes {
+				werewolf.communication.SendToChannel("The werewolves were so indecisive, nobody was killed tonight!")
+			} else {
+				werewolf.data.Kill(mostVoted)
+				werewolf.communication.SendToChannel("%s was killed!", mostVoted)
+			}
 		}
 	case "day_starts":
 		werewolf.lynchVote.Reset()
 	case "lynch":
-		vote := werewolf.getLynchVote(player)
-		werewolf.communication.SendToChannel("%s voted to lynch %s", player, vote)
+		vote, timeout := werewolf.getLynchVote(player)
 
-		werewolf.lynchVote.Vote(vote)
+		if timeout {
+			werewolf.communication.SendToChannel("%s took too long to decide and forfeited their vote", player)
+			werewolf.lynchVote.VoteBlank()
+		} else {
+			werewolf.communication.SendToChannel("%s voted to lynch %s", player, vote)
+			werewolf.lynchVote.Vote(vote)
+		}
 
 		totalLynchVoteCount := werewolf.lynchVote.TotalVoteCount()
 		neededLynchVotes := werewolf.data.CountComponent(werewolf.lynchVote)
 		log.Printf("%d people voted, need %d votes", totalLynchVoteCount, neededLynchVotes)
 		if totalLynchVoteCount == neededLynchVotes {
-			mostVoted := werewolf.lynchVote.MostVoted()
-			werewolf.data.Kill(werewolf.lynchVote.MostVoted())
-			werewolf.communication.SendToChannel("%s was lynched!", mostVoted)
+			mostVoted, noVotes := werewolf.lynchVote.MostVoted()
+
+			if noVotes {
+				werewolf.communication.SendToChannel("The villagers were so indecisive, nobody was lynched today!")
+			} else {
+				werewolf.data.Kill(mostVoted)
+				werewolf.communication.SendToChannel("%s was lynched!", mostVoted)
+			}
 		}
 	}
 	hasTerminated <- true
 }
 
-func (werewolf *Werewolf) getKillVote(player string) string {
+func (werewolf *Werewolf) getKillVote(player string) (string, bool) {
 	for {
-		vote := werewolf.communication.Request(player, "%s, who do you want to kill?: ", player)
+		vote, timeout := werewolf.communication.Request(player, "%s, who do you want to kill?: ", player)
 
-		if vote == player {
+		switch {
+		case timeout:
+			return "", true
+		case vote == player:
 			werewolf.communication.SendToPlayer(player, "You cannot kill yourself, sorry.")
-		} else if !werewolf.data.IsRole(vote, "villager") {
+		case !werewolf.data.IsRole(vote, "villager"):
 			werewolf.communication.SendToPlayer(player, "That is not a living villager!")
-		} else {
-			return vote
+		default:
+			return vote, false
 		}
 	}
 }
 
-func (werewolf *Werewolf) getLynchVote(player string) string {
+func (werewolf *Werewolf) getLynchVote(player string) (string, bool) {
 	for {
-		vote := werewolf.communication.Request(player, "%s, who do you want to lynch?: ", player)
+		vote, timeout := werewolf.communication.Request(player, "%s, who do you want to lynch?: ", player)
 
-		if vote == player {
+		switch {
+		case timeout:
+			return "", true
+		case vote == player:
 			werewolf.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
-		} else if !werewolf.data.IsPlayer(vote) {
+		case !werewolf.data.IsPlayer(vote):
 			werewolf.communication.SendToPlayer(player, "That is not a living player!")
-		} else if werewolf.data.IsRole(vote, "werewolf") {
+		case werewolf.data.IsRole(vote, "werewolf"):
 			werewolf.communication.SendToPlayer(player, "You cannot lynch another werewolf!")
-		} else {
-			return vote
+		default:
+			return vote, false
 		}
 	}
 }

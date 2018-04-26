@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"github.com/therocode/werewolf/werewolf/logic/timeline"
+	"github.com/therocode/werewolf/logic/timeline"
 )
 
 // Role is the interface for any game role.

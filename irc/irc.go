@@ -2,9 +2,13 @@ package irc
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	irc "github.com/thoj/go-ircevent"
 )
+
+const timeoutDelayInSeconds = 10
 
 // Irc is an IRC implementation of the Communication interface
 type Irc struct {
@@ -33,12 +37,30 @@ func (irc *Irc) SendToPlayer(player string, format string, params ...interface{}
 }
 
 // Request implements the Communication interface
-func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) string {
+func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
 	irc.response[requestFrom] = make(chan string, 1)
-	response := <-irc.response[requestFrom]
-	delete(irc.response, requestFrom)
-	return response
+
+	// Create timeout goroutine
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(timeoutDelayInSeconds * time.Second)
+		timeout <- true
+	}()
+
+	log.Printf("Requested [%s] from %s", promptFormat, requestFrom)
+
+	// Wait for response, or time out
+	select {
+	case response := <-irc.response[requestFrom]:
+		log.Printf("Response received")
+		delete(irc.response, requestFrom)
+		return response, false
+	case <-timeout:
+		log.Printf("Timeout occurred")
+		delete(irc.response, requestFrom)
+		return "", true
+	}
 }
 
 // Respond is used to supply player input as responses to game queries initiated by Request

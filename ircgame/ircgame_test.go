@@ -3,7 +3,7 @@ package ircgame
 import (
 	"testing"
 
-	"github.com/therocode/werewolf/werewolf/testgame"
+	"github.com/therocode/werewolf/testgame"
 )
 
 func TestIrcGame_assignRoles(t *testing.T) {

@@ -3,9 +3,9 @@ package roles
 import (
 	"log"
 
-	"github.com/therocode/werewolf/werewolf/logic"
-	"github.com/therocode/werewolf/werewolf/logic/components"
-	"github.com/therocode/werewolf/werewolf/logic/timeline"
+	"github.com/therocode/werewolf/logic"
+	"github.com/therocode/werewolf/logic/components"
+	"github.com/therocode/werewolf/logic/timeline"
 )
 
 // Villager role
@@ -52,34 +52,47 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 	case "day_starts":
 		villager.lynchVote.Reset()
 	case "lynch":
-		vote := villager.getLynchVote(player)
-		villager.communication.SendToChannel("%s voted to lynch %s", player, vote)
+		vote, timeout := villager.getLynchVote(player)
 
-		villager.lynchVote.Vote(vote)
+		if timeout {
+			villager.communication.SendToChannel("%s took too long to decide, and forfeited their vote", player)
+			villager.lynchVote.VoteBlank()
+		} else {
+			villager.communication.SendToChannel("%s voted to lynch %s", player, vote)
+			villager.lynchVote.Vote(vote)
+		}
 
 		voteCount := villager.lynchVote.TotalVoteCount()
 		neededVotes := villager.data.CountComponent(villager.lynchVote)
 		log.Printf("%d people voted, need %d votes", voteCount, neededVotes)
 		if voteCount == neededVotes {
-			mostVoted := villager.lynchVote.MostVoted()
-			villager.data.Kill(villager.lynchVote.MostVoted())
-			villager.communication.SendToChannel("%s was lynched!", mostVoted)
+			mostVoted, noVotes := villager.lynchVote.MostVoted()
+
+			if noVotes {
+				villager.communication.SendToChannel("The villagers were so indecisive, nobody was lynched today!")
+			} else {
+				villager.data.Kill(mostVoted)
+				villager.communication.SendToChannel("%s was lynched!", mostVoted)
+			}
 		}
 	}
 
 	hasTerminated <- true
 }
 
-func (villager *Villager) getLynchVote(player string) string {
+func (villager *Villager) getLynchVote(player string) (string, bool) {
 	for {
-		vote := villager.communication.Request(player, "%s, who do you want to lynch?: ", player)
+		vote, timeout := villager.communication.Request(player, "%s, who do you want to lynch?: ", player)
 
-		if vote == player {
+		switch {
+		case timeout:
+			return "", true
+		case vote == player:
 			villager.communication.SendToPlayer(player, "You cannot lynch yourself, sorry.")
-		} else if !villager.data.IsPlayer(vote) {
+		case !villager.data.IsPlayer(vote):
 			villager.communication.SendToPlayer(player, "That is not a living player!")
-		} else {
-			return vote
+		default:
+			return vote, false
 		}
 	}
 }

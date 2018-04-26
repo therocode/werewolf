@@ -1,8 +1,6 @@
 package logic
 
-import (
-	"github.com/therocode/werewolf/werewolf/logic/timeline"
-)
+import "github.com/therocode/werewolf/logic/timeline"
 
 // Base is a special timeline.Generator and event handler used for creating and managing basic game events.
 type Base struct {

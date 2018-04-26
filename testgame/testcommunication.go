@@ -30,10 +30,13 @@ func (instance *TestCommunication) SendToPlayer(player string, format string, pa
 }
 
 // Request implements the Communication interface
-func (instance *TestCommunication) Request(requestFrom string, promptFormat string, params ...interface{}) string {
+func (instance *TestCommunication) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	fmt.Printf(promptFormat+"\n", params...)
 	var text string
 	fmt.Scanln(&text)
 
-	return text
+	return text, false
 }
+
+// Respond implements the Communication interface
+func (*TestCommunication) Respond(string, string) {}

@@ -4,7 +4,7 @@ import (
 	"log"
 	"math/rand"
 
-	"github.com/therocode/werewolf/werewolf/logic"
+	"github.com/therocode/werewolf/logic"
 )
 
 const (

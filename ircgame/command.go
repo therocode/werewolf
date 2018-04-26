@@ -1,24 +1,26 @@
-package werewolf
+package ircgame
 
 import (
 	"errors"
 	"strings"
 )
 
-type command struct {
+// Command represents a command to control the Werewolf game
+type Command struct {
 	Channel string
 	Nick    string
 	Command string
 	Args    []string
 }
 
-func ParseCommand(channel string, nick string, raw string) (cmd command, err error) {
+// ParseCommand parses a raw string into a Command.
+func ParseCommand(channel string, nick string, raw string) (cmd Command, err error) {
 	if raw[0] != '!' {
-		return command{}, errors.New("Command strings must start with '!'")
+		return Command{}, errors.New("Command strings must start with '!'")
 	}
 
 	tokens := strings.Fields(raw)
-	cmd = command{
+	cmd = Command{
 		Command: tokens[0][1:], // Remove leading '!' from command
 		Args:    tokens[1:],    // Arguments are all words following the command
 		Nick:    nick,
@@ -26,7 +28,7 @@ func ParseCommand(channel string, nick string, raw string) (cmd command, err err
 	}
 
 	if len(cmd.Command) == 0 {
-		return command{}, errors.New("Command cannot be empty")
+		return Command{}, errors.New("Command cannot be empty")
 	}
 
 	return cmd, nil

@@ -3,7 +3,7 @@ package logic
 import (
 	"log"
 
-	"github.com/therocode/werewolf/werewolf/logic/timeline"
+	"github.com/therocode/werewolf/logic/timeline"
 )
 
 // Game contains basic game functionality

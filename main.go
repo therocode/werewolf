@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/therocode/werewolf/werewolf/ircgame"
-	"github.com/therocode/werewolf/werewolf/logic/components"
-	"github.com/therocode/werewolf/werewolf/logic/roles"
-	"github.com/therocode/werewolf/werewolf/testgame"
+	"github.com/therocode/werewolf/ircgame"
+	"github.com/therocode/werewolf/logic/components"
+	"github.com/therocode/werewolf/logic/roles"
+	"github.com/therocode/werewolf/testgame"
 	ircevent "github.com/thoj/go-ircevent"
 )
 
