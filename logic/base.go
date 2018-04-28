@@ -20,9 +20,9 @@ func NewBase(data Data, communication Communication) *Base {
 func (*Base) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
-			"night_starts",
-			map[string]bool{},
-			map[string]bool{},
+			Name:   "night_starts",
+			Before: map[string]bool{},
+			After:  map[string]bool{},
 		},
 		timeline.Event{
 			"day_starts",
