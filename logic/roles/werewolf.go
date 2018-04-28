@@ -41,14 +41,14 @@ func (werewolf *Werewolf) HasComponent(component logic.Component) bool {
 func (*Werewolf) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
-			"werewolves_see_each_other",
-			map[string]bool{"night_starts": true},
-			map[string]bool{},
+			Name:   "werewolves_see_each_other",
+			Before: map[string]bool{"night_starts": true},
+			After:  map[string]bool{},
 		},
 		timeline.Event{
-			"werewolves_kill",
-			map[string]bool{"werewolves_see_each_other": true},
-			map[string]bool{"day_starts": true},
+			Name:   "werewolves_kill",
+			Before: map[string]bool{"werewolves_see_each_other": true},
+			After:  map[string]bool{"day_starts": true},
 		},
 	}
 }

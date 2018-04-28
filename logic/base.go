@@ -25,9 +25,9 @@ func (*Base) Generate() []timeline.Event {
 			After:  map[string]bool{},
 		},
 		timeline.Event{
-			"day_starts",
-			map[string]bool{"night_starts": true},
-			map[string]bool{},
+			Name:   "day_starts",
+			Before: map[string]bool{"night_starts": true},
+			After:  map[string]bool{},
 		},
 	}
 }

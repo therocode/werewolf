@@ -38,9 +38,9 @@ func (villager *Villager) HasComponent(component logic.Component) bool {
 func (*Villager) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
-			"lynch",
-			map[string]bool{"day_starts": true},
-			map[string]bool{},
+			Name:   "lynch",
+			Before: map[string]bool{"day_starts": true},
+			After:  map[string]bool{},
 		},
 	}
 }
