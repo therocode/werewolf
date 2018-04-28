@@ -3,6 +3,7 @@ package irc
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	irc "github.com/thoj/go-ircevent"
@@ -15,6 +16,7 @@ type Irc struct {
 	irccon   *irc.Connection
 	channel  string
 	response map[string]chan string
+	mutex    sync.Mutex
 }
 
 // NewIrc creates a new Irc instance
@@ -23,6 +25,7 @@ func NewIrc(irc *irc.Connection, channel string) *Irc {
 	this.irccon = irc
 	this.channel = channel
 	this.response = map[string]chan string{}
+	this.mutex = sync.Mutex{}
 	return this
 }
 
@@ -39,7 +42,11 @@ func (irc *Irc) SendToPlayer(player string, format string, params ...interface{}
 // Request implements the Communication interface
 func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
-	irc.response[requestFrom] = make(chan string, 1)
+
+	channel := make(chan string, 1)
+	irc.mutex.Lock()
+	irc.response[requestFrom] = channel
+	irc.mutex.Unlock()
 
 	// Create timeout goroutine
 	timeout := make(chan bool, 1)
@@ -51,8 +58,9 @@ func (irc *Irc) Request(requestFrom string, promptFormat string, params ...inter
 	log.Printf("Requested [%s] from %s", promptFormat, requestFrom)
 
 	// Wait for response, or time out
+
 	select {
-	case response := <-irc.response[requestFrom]:
+	case response := <-channel:
 		log.Printf("Response received")
 		delete(irc.response, requestFrom)
 		return response, false
@@ -65,7 +73,11 @@ func (irc *Irc) Request(requestFrom string, promptFormat string, params ...inter
 
 // Respond is used to supply player input as responses to game queries initiated by Request
 func (irc *Irc) Respond(sender string, message string) {
-	if channel, contains := irc.response[sender]; contains {
+	irc.mutex.Lock()
+	channel, contains := irc.response[sender]
+	irc.mutex.Unlock()
+
+	if contains {
 		channel <- message
 	}
 }

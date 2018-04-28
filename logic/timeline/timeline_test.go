@@ -11,14 +11,14 @@ type Game struct{}
 func (Game) Generate() []Event {
 	return []Event{
 		Event{
-			"night_starts",
-			map[string]bool{},
-			map[string]bool{},
+			Name:   "night_starts",
+			Before: map[string]bool{},
+			After:  map[string]bool{},
 		},
 		Event{
-			"day_starts",
-			map[string]bool{"night_starts": true},
-			map[string]bool{},
+			Name:   "day_starts",
+			Before: map[string]bool{"night_starts": true},
+			After:  map[string]bool{},
 		},
 	}
 }
@@ -28,14 +28,14 @@ type Werewolf struct{}
 func (Werewolf) Generate() []Event {
 	return []Event{
 		Event{
-			"werewolves_see_each_other",
-			map[string]bool{"night_starts": true},
-			map[string]bool{"day_starts": true},
+			Name:   "werewolves_see_each_other",
+			Before: map[string]bool{"night_starts": true},
+			After:  map[string]bool{},
 		},
 		Event{
-			"werewolves_kill",
-			map[string]bool{"werewolves_see_each_other": true},
-			map[string]bool{"day_starts": true},
+			Name:   "werewolves_kill",
+			Before: map[string]bool{"werewolves_see_each_other": true},
+			After:  map[string]bool{"day_starts": true},
 		},
 	}
 }
@@ -45,9 +45,9 @@ type Villager struct{}
 func (Villager) Generate() []Event {
 	return []Event{
 		Event{
-			"lynch",
-			map[string]bool{"day_starts": true},
-			map[string]bool{},
+			Name:   "lynch",
+			Before: map[string]bool{"day_starts": true},
+			After:  map[string]bool{},
 		},
 	}
 }
@@ -57,9 +57,9 @@ type Doctor struct{}
 func (Doctor) Generate() []Event {
 	return []Event{
 		Event{
-			"doctor_heals",
-			map[string]bool{"werewolves_kill": true},
-			map[string]bool{"day_starts": true},
+			Name:   "doctor_heals",
+			Before: map[string]bool{"werewolves_kill": true},
+			After:  map[string]bool{"day_starts": true},
 		},
 	}
 }
@@ -69,9 +69,9 @@ type Seer struct{}
 func (Seer) Generate() []Event {
 	return []Event{
 		Event{
-			"seer_identifies",
-			map[string]bool{"werewolves_kill": true},
-			map[string]bool{"day_starts": true},
+			Name:   "seer_identifies",
+			Before: map[string]bool{"werewolves_kill": true},
+			After:  map[string]bool{"day_starts": true},
 		},
 	}
 }
