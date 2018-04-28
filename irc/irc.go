@@ -8,7 +8,7 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
-const timeoutDelayInSeconds = 10
+const timeoutDelayInSeconds = 30
 
 // Irc is an IRC implementation of the Communication interface
 type Irc struct {

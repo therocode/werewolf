@@ -17,6 +17,7 @@ type gameEntry struct {
 
 // IrcLobby keeps track of all ongoing IRC games
 type IrcLobby struct {
+	botname       string
 	channel       string
 	irccon        *ircevent.Connection
 	games         map[string]gameEntry
@@ -24,8 +25,9 @@ type IrcLobby struct {
 }
 
 // NewIrcLobby creates a new IrcLobby instance
-func NewIrcLobby(channel string, irccon *ircevent.Connection) *IrcLobby {
+func NewIrcLobby(botname string, channel string, irccon *ircevent.Connection) *IrcLobby {
 	lobby := &IrcLobby{}
+	lobby.botname = botname
 	lobby.channel = channel
 	lobby.irccon = irccon
 	lobby.games = map[string]gameEntry{}
@@ -41,13 +43,12 @@ func (lobby *IrcLobby) message(format string, params ...interface{}) {
 func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string) {
 	log.Printf("IRC [channel=%s, nick=%s, message=%s]", channel, nick, message)
 
-	// Ignore any message not sent to the lobby channel or any active game channels
-	if _, contains := lobby.games[channel]; !contains && channel != lobby.channel {
+	// Ignore any message not sent to the lobby channel or any active game channels or the bot
+	if _, contains := lobby.games[channel]; !contains && channel != lobby.channel && channel != lobby.botname {
 		return
 	}
 
 	if cmd, err := ParseCommand(channel, nick, message); err == nil {
-
 		switch {
 		case cmd.Command == "newgame":
 			lobby.handleNewGame(cmd)

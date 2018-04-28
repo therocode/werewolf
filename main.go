@@ -48,7 +48,7 @@ func runIrcGame() {
 	ircnick1 := "ulfmann"
 	irccon := ircevent.IRC(ircnick1, "Ulf Mannerstrom")
 
-	lobby := ircgame.NewIrcLobby(lobbyChannel, irccon)
+	lobby := ircgame.NewIrcLobby(ircnick1, lobbyChannel, irccon)
 
 	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
 	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
