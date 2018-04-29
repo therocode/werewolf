@@ -45,14 +45,16 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 	} else if event.Name == "day_starts" {
 		// Prior to nightfall, check if enough villagers or all werewolves are dead
 		instance.communication.SendToChannel("Day breaks.")
+		instance.communication.UnmuteChannel()
 		instance.checkIfGameIsOver()
 
-		instance.communication.SendToChannel("5 minutes to go.")
-		time.Sleep(4 * time.Minute)
+		//instance.communication.SendToChannel("5 minutes to go.")
+		//time.Sleep(4 * time.Minute)
 		instance.communication.SendToChannel("1 minute to go.")
 		time.Sleep(30 * time.Second)
 		instance.communication.SendToChannel("30 seconds to go.")
 		time.Sleep(30 * time.Second)
+		instance.communication.MuteChannel()
 	}
 }
 

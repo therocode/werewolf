@@ -38,19 +38,20 @@ func (instance *IrcGame) Run() {
 	// Recover from a general panic by ending the game and printing the error message
 	defer func() {
 		if r := recover(); r != nil {
-			instance.EndGame()
 			instance.communication.SendToChannel("Game was terminated, please start a new one: %s", r)
 		}
+
+		instance.EndGame()
 	}()
 
 	instance.assignRoles()
+
+	instance.communication.MuteChannel()
 
 	instance.state = gameStateStarted
 	for instance.state == gameStateStarted {
 		instance.game.Run()
 	}
-
-	log.Printf("Game ended.")
 }
 
 // AddRole adds a role to the game
@@ -105,6 +106,11 @@ func (instance *IrcGame) IsFinished() bool {
 	return instance.state == gameStateGameOver
 }
 
+// IsRunning returns true if the game is in session
+func (instance *IrcGame) IsRunning() bool {
+	return instance.state == gameStateStarted
+}
+
 /*
  * Data methods
  */
@@ -112,6 +118,7 @@ func (instance *IrcGame) IsFinished() bool {
 // EndGame implements the Data interface
 func (instance *IrcGame) EndGame() {
 	instance.state = gameStateGameOver
+	instance.communication.Leave()
 }
 
 // GetRoles implements the Data interface

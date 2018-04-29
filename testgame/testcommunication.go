@@ -40,3 +40,12 @@ func (instance *TestCommunication) Request(requestFrom string, promptFormat stri
 
 // Respond implements the Communication interface
 func (*TestCommunication) Respond(string, string) {}
+
+// MuteChannel implements the Communication interface
+func (*TestCommunication) MuteChannel() {}
+
+// UnmuteChannel implements the Communication interface
+func (*TestCommunication) UnmuteChannel() {}
+
+// Leave implements the Communication interface
+func (*TestCommunication) Leave() {}

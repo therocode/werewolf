@@ -11,4 +11,10 @@ type Communication interface {
 	Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool)
 
 	Respond(player string, message string)
+
+	MuteChannel()
+
+	UnmuteChannel()
+
+	Leave()
 }

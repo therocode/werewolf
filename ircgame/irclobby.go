@@ -58,13 +58,16 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 			lobby.handleJoin(cmd)
 		case cmd.Command == "start":
 			lobby.handleStart(cmd)
+		case cmd.Command == "stop":
+			lobby.handleStop(cmd)
 		default:
 			lobby.games[channel].game.communication.SendToChannel("%s is not a recognized command in a game channel", cmd.Command)
 		}
 	} else {
 		// Handle player input
-		gameChannel := lobby.gamePerPlayer[nick]
-		lobby.games[gameChannel].game.communication.Respond(nick, message)
+		if gameChannel, contains := lobby.gamePerPlayer[nick]; contains {
+			lobby.games[gameChannel].game.communication.Respond(nick, message)
+		}
 	}
 }
 
@@ -121,6 +124,25 @@ func (lobby *IrcLobby) handleStart(cmd Command) {
 	}
 
 	go game.Run()
+}
+
+func (lobby *IrcLobby) handleStop(cmd Command) {
+	game := lobby.games[cmd.Channel].game
+	owner := lobby.games[cmd.Channel].owner
+
+	if cmd.Nick != owner {
+		game.communication.SendToChannel("Only the owner, %s, can stop the game", owner)
+		return
+	}
+
+	if game.IsRunning() {
+		game.communication.SendToChannel("Cannot stop a game that already started.")
+		return
+	}
+
+	game.communication.SendToChannel("Game was stopped by %s", cmd.Nick)
+	game.EndGame()
+	delete(lobby.games, cmd.Channel)
 }
 
 func newIrcGame(communication *irc.Irc) *IrcGame {

@@ -39,6 +39,16 @@ func (irc *Irc) SendToPlayer(player string, format string, params ...interface{}
 	irc.irccon.Privmsg(player, fmt.Sprintf(format, params...))
 }
 
+// MuteChannel implements the Communication interface
+func (irc *Irc) MuteChannel() {
+	irc.irccon.Mode(irc.channel, "+m")
+}
+
+// UnmuteChannel implements the Communication interface
+func (irc *Irc) UnmuteChannel() {
+	irc.irccon.Mode(irc.channel, "-m")
+}
+
 // Request implements the Communication interface
 func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
@@ -84,4 +94,8 @@ func (irc *Irc) Respond(sender string, message string) {
 	if contains {
 		channel <- message
 	}
+}
+
+func (irc *Irc) Leave() {
+	irc.irccon.Part(irc.channel)
 }
