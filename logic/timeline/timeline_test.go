@@ -30,7 +30,7 @@ func (Werewolf) Generate() []Event {
 		Event{
 			Name:   "werewolves_see_each_other",
 			Before: map[string]bool{"night_starts": true},
-			After:  map[string]bool{},
+			After:  map[string]bool{"day_starts": true},
 		},
 		Event{
 			Name:   "werewolves_kill",
