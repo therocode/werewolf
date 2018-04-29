@@ -13,10 +13,10 @@ const timeoutDelayInSeconds = 30
 
 // Irc is an IRC implementation of the Communication interface
 type Irc struct {
-	irccon   *irc.Connection
-	channel  string
-	response map[string]chan string
-	mutex    sync.Mutex
+	irccon           *irc.Connection
+	channel          string
+	response         map[string]chan string
+	responseMapMutex sync.Mutex
 }
 
 // NewIrc creates a new Irc instance
@@ -25,7 +25,7 @@ func NewIrc(irc *irc.Connection, channel string) *Irc {
 	this.irccon = irc
 	this.channel = channel
 	this.response = map[string]chan string{}
-	this.mutex = sync.Mutex{}
+	this.responseMapMutex = sync.Mutex{}
 	return this
 }
 
@@ -44,9 +44,9 @@ func (irc *Irc) Request(requestFrom string, promptFormat string, params ...inter
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
 
 	channel := make(chan string, 1)
-	irc.mutex.Lock()
+	irc.responseMapMutex.Lock()
 	irc.response[requestFrom] = channel
-	irc.mutex.Unlock()
+	irc.responseMapMutex.Unlock()
 
 	// Create timeout goroutine
 	timeout := make(chan bool, 1)
@@ -62,20 +62,24 @@ func (irc *Irc) Request(requestFrom string, promptFormat string, params ...inter
 	select {
 	case response := <-channel:
 		log.Printf("Response received")
+		irc.responseMapMutex.Lock()
 		delete(irc.response, requestFrom)
+		irc.responseMapMutex.Unlock()
 		return response, false
 	case <-timeout:
 		log.Printf("Timeout occurred")
+		irc.responseMapMutex.Lock()
 		delete(irc.response, requestFrom)
+		irc.responseMapMutex.Unlock()
 		return "", true
 	}
 }
 
 // Respond is used to supply player input as responses to game queries initiated by Request
 func (irc *Irc) Respond(sender string, message string) {
-	irc.mutex.Lock()
+	irc.responseMapMutex.Lock()
 	channel, contains := irc.response[sender]
-	irc.mutex.Unlock()
+	irc.responseMapMutex.Unlock()
 
 	if contains {
 		channel <- message

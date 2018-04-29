@@ -122,7 +122,7 @@ func (instance *Game) Run() {
 	event, instance.timeline = instance.timeline[0], instance.timeline[1:]
 	log.Printf("Popped event: %s", event.Name)
 
-	// Create a goroutine executing the game role handler
+	// Execute the Base handler single-threaded
 	instance.base.Handle("", event, nil)
 
 	// Create a goroutine executing the role handler for the event for each player

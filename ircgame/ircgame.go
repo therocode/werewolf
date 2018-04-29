@@ -3,6 +3,7 @@ package ircgame
 import (
 	"log"
 	"math/rand"
+	"sync"
 
 	"github.com/therocode/werewolf/logic"
 )
@@ -19,6 +20,7 @@ type IrcGame struct {
 	communication logic.Communication
 	game          *logic.Game
 	players       []string
+	dataMutex     sync.Mutex
 }
 
 // NewIrcGame creates a new instance of IrcGame
@@ -145,4 +147,14 @@ func (instance *IrcGame) Kill(player string) {
 // GetPlayersWithRole implements the Data interface
 func (instance *IrcGame) GetPlayersWithRole(roleName string) []string {
 	return instance.game.GetPlayersWithRole(roleName)
+}
+
+// Lock implements the Data interface
+func (instance *IrcGame) Lock() {
+	instance.dataMutex.Lock()
+}
+
+// Unlock implements the Data interface
+func (instance *IrcGame) Unlock() {
+	instance.dataMutex.Unlock()
 }

@@ -10,4 +10,6 @@ type Data interface {
 	IsPlayer(name string) bool
 	IsRole(player string, role string) bool
 	GetPlayersWithRole(roleName string) []string
+	Lock()
+	Unlock()
 }

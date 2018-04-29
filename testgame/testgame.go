@@ -1,6 +1,8 @@
 package testgame
 
-import "github.com/therocode/werewolf/logic"
+import (
+	"github.com/therocode/werewolf/logic"
+)
 
 // TestGame is a local command-line test implementation of the game
 type TestGame struct {
@@ -75,4 +77,12 @@ func (instance *TestGame) Kill(player string) {
 // GetPlayersWithRole implements the Data interface
 func (instance *TestGame) GetPlayersWithRole(roleName string) []string {
 	return instance.game.GetPlayersWithRole(roleName)
+}
+
+// Lock implements the Data interface
+func (instance *TestGame) Lock() {
+}
+
+// Unlock implements the Data interface
+func (instance *TestGame) Unlock() {
 }

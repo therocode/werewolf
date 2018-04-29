@@ -55,6 +55,9 @@ func (*Werewolf) Generate() []timeline.Event {
 
 // Handle implements Role interface
 func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTerminated chan bool) {
+	werewolf.data.Lock()
+	defer werewolf.data.Unlock()
+
 	switch event.Name {
 	case "night_starts":
 		werewolf.killVote.Reset()
@@ -117,7 +120,9 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 
 func (werewolf *Werewolf) getKillVote(player string) (string, bool) {
 	for {
+		werewolf.data.Unlock()
 		vote, timeout := werewolf.communication.Request(player, "%s, who do you want to kill?: ", player)
+		werewolf.data.Lock()
 
 		switch {
 		case timeout:
@@ -134,7 +139,9 @@ func (werewolf *Werewolf) getKillVote(player string) (string, bool) {
 
 func (werewolf *Werewolf) getLynchVote(player string) (string, bool) {
 	for {
+		werewolf.data.Unlock()
 		vote, timeout := werewolf.communication.Request(player, "%s, who do you want to lynch?: ", player)
+		werewolf.data.Lock()
 
 		switch {
 		case timeout:

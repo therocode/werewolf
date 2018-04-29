@@ -2,6 +2,7 @@ package roles
 
 import (
 	"log"
+	"sync"
 
 	"github.com/therocode/werewolf/logic"
 	"github.com/therocode/werewolf/logic/components"
@@ -13,6 +14,7 @@ type Villager struct {
 	data          logic.Data
 	communication logic.Communication
 	lynchVote     *components.Vote
+	dataMutex     sync.Mutex
 }
 
 // NewVillager creates a new villager instance
@@ -47,6 +49,9 @@ func (*Villager) Generate() []timeline.Event {
 
 // Handle implements Role interface
 func (villager *Villager) Handle(player string, event timeline.Event, hasTerminated chan bool) {
+	villager.data.Lock()
+	defer villager.data.Unlock()
+
 	switch event.Name {
 	case "night_starts":
 	case "day_starts":
@@ -82,7 +87,9 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 
 func (villager *Villager) getLynchVote(player string) (string, bool) {
 	for {
+		villager.data.Unlock()
 		vote, timeout := villager.communication.Request(player, "%s, who do you want to lynch?: ", player)
+		villager.data.Lock()
 
 		switch {
 		case timeout:
