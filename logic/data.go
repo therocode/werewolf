@@ -13,4 +13,6 @@ type Data interface {
 	GetPlayers() []string
 	Lock()
 	Unlock()
+	IncrementTurn()
+	GetTurnCount() int
 }

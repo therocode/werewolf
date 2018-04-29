@@ -21,6 +21,7 @@ type IrcGame struct {
 	game          *logic.Game
 	players       []string
 	dataMutex     sync.Mutex
+	turnCount     int
 }
 
 // NewIrcGame creates a new instance of IrcGame
@@ -168,4 +169,14 @@ func (instance *IrcGame) Lock() {
 // Unlock implements the Data interface
 func (instance *IrcGame) Unlock() {
 	instance.dataMutex.Unlock()
+}
+
+// IncrementTurn implements the Data interface
+func (instance *IrcGame) IncrementTurn() {
+	instance.turnCount++
+}
+
+// GetTurnCount implements the Data interface
+func (instance *IrcGame) GetTurnCount() int {
+	return instance.turnCount
 }

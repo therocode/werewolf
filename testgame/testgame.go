@@ -6,8 +6,9 @@ import (
 
 // TestGame is a local command-line test implementation of the game
 type TestGame struct {
-	run  bool
-	game *logic.Game
+	run       bool
+	game      *logic.Game
+	turnCount int
 }
 
 // NewTestGame creates a new TestGame instance
@@ -90,4 +91,14 @@ func (instance *TestGame) Lock() {
 
 // Unlock implements the Data interface
 func (instance *TestGame) Unlock() {
+}
+
+// IncrementTurn implements the Data interface
+func (instance *TestGame) IncrementTurn() {
+	instance.turnCount++
+}
+
+// GetTurnCount implements the Data interface
+func (instance *TestGame) GetTurnCount() int {
+	return instance.turnCount
 }

@@ -39,11 +39,10 @@ func (*Base) Generate() []timeline.Event {
 // Handle implements the Role interface
 func (instance *Base) Handle(player string, event timeline.Event, hasTerminated chan bool) {
 	if event.Name == "night_starts" {
-		// Prior to nightfall, check if enough villagers or all werewolves are dead
+		instance.data.IncrementTurn()
 		instance.communication.SendToChannel("Night falls.")
 		instance.checkIfGameIsOver()
 	} else if event.Name == "day_starts" {
-		// Prior to nightfall, check if enough villagers or all werewolves are dead
 		instance.communication.SendToChannel("Day breaks.")
 		instance.unmuteChannel()
 		instance.checkIfGameIsOver()
