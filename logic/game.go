@@ -105,6 +105,15 @@ func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	return result
 }
 
+// GetPlayers gets a list of all player names
+func (instance *Game) GetPlayers() []string {
+	result := []string{}
+	for player, _ := range instance.players {
+		result = append(result, player)
+	}
+	return result
+}
+
 // Run the game
 func (instance *Game) Run() {
 	// If there are no events in the timeline, generate more

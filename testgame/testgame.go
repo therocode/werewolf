@@ -79,6 +79,11 @@ func (instance *TestGame) GetPlayersWithRole(roleName string) []string {
 	return instance.game.GetPlayersWithRole(roleName)
 }
 
+// GetPlayers implements the Data interface
+func (instance *TestGame) GetPlayers() []string {
+	return instance.game.GetPlayers()
+}
+
 // Lock implements the Data interface
 func (instance *TestGame) Lock() {
 }

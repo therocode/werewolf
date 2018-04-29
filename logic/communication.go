@@ -12,9 +12,11 @@ type Communication interface {
 
 	Respond(player string, message string)
 
-	MuteChannel()
+	MutePlayer(player string)
 
-	UnmuteChannel()
+	UnmutePlayer(player string)
+
+	MuteChannel()
 
 	Leave()
 }

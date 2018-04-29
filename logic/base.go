@@ -45,7 +45,7 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 	} else if event.Name == "day_starts" {
 		// Prior to nightfall, check if enough villagers or all werewolves are dead
 		instance.communication.SendToChannel("Day breaks.")
-		instance.communication.UnmuteChannel()
+		instance.unmuteChannel()
 		instance.checkIfGameIsOver()
 
 		//instance.communication.SendToChannel("5 minutes to go.")
@@ -54,7 +54,7 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 		time.Sleep(30 * time.Second)
 		instance.communication.SendToChannel("30 seconds to go.")
 		time.Sleep(30 * time.Second)
-		instance.communication.MuteChannel()
+		instance.muteChannel()
 	}
 }
 
@@ -69,5 +69,17 @@ func (instance *Base) checkIfGameIsOver() {
 	} else if villagerCount <= werewolfCount {
 		instance.communication.SendToChannel("There are at least as many werewolves as villagers! Werewolves win!")
 		instance.data.EndGame()
+	}
+}
+
+func (instance *Base) muteChannel() {
+	for _, player := range instance.data.GetPlayers() {
+		instance.communication.MutePlayer(player)
+	}
+}
+
+func (instance *Base) unmuteChannel() {
+	for _, player := range instance.data.GetPlayers() {
+		instance.communication.UnmutePlayer(player)
 	}
 }

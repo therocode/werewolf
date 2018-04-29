@@ -45,7 +45,6 @@ func (instance *IrcGame) Run() {
 	}()
 
 	instance.assignRoles()
-
 	instance.communication.MuteChannel()
 
 	instance.state = gameStateStarted
@@ -154,6 +153,11 @@ func (instance *IrcGame) Kill(player string) {
 // GetPlayersWithRole implements the Data interface
 func (instance *IrcGame) GetPlayersWithRole(roleName string) []string {
 	return instance.game.GetPlayersWithRole(roleName)
+}
+
+// GetPlayers implements the Data interface
+func (instance *IrcGame) GetPlayers() []string {
+	return instance.game.GetPlayers()
 }
 
 // Lock implements the Data interface
