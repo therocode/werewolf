@@ -102,6 +102,7 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 		vote, timeout := werewolf.getLynchVote(player)
 
 		if timeout {
+			werewolf.communication.SendToPlayer(player, "Sorry, you took too long to decide.")
 			werewolf.communication.SendToChannel("%s took too long to decide and forfeited their vote", player)
 			werewolf.lynchVote.VoteBlank()
 		} else {

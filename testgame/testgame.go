@@ -66,8 +66,8 @@ func (instance *TestGame) CountComponent(component logic.Component) int {
 }
 
 // CountRoles implements the Data interface
-func (instance *TestGame) CountRoles(roleName string) int {
-	return instance.game.CountRoles(roleName)
+func (instance *TestGame) CountRoles(roleNames ...string) int {
+	return instance.game.CountRoles(roleNames...)
 }
 
 // Kill implements the Data interface
@@ -83,6 +83,11 @@ func (instance *TestGame) GetPlayersWithRole(roleName string) []string {
 // GetPlayers implements the Data interface
 func (instance *TestGame) GetPlayers() []string {
 	return instance.game.GetPlayers()
+}
+
+// GetPlayerRole implements the Data interface
+func (instance *TestGame) GetPlayerRole(player string) string {
+	return instance.game.GetPlayerRole(player)
 }
 
 // Lock implements the Data interface

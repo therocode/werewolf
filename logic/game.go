@@ -54,6 +54,12 @@ func (instance *Game) GetRoles() []Role {
 	return roles
 }
 
+// ContainsRole returns true if the game is configured with the specified role
+func (instance *Game) ContainsRole(roleName string) bool {
+	_, contains := instance.roles[roleName]
+	return contains
+}
+
 // IsPlayer returns true if the supplied string is the name of a player in the game
 func (instance *Game) IsPlayer(name string) bool {
 	_, contains := instance.players[name]
@@ -78,12 +84,14 @@ func (instance *Game) CountComponent(component Component) int {
 	return count
 }
 
-// CountRoles returns the number of the specified role in the game
-func (instance *Game) CountRoles(roleName string) int {
+// CountRoles returns the number of the specified roles in the game
+func (instance *Game) CountRoles(roleNames ...string) int {
 	count := 0
 	for _, playerRoleName := range instance.players {
-		if roleName == playerRoleName {
-			count++
+		for _, roleName := range roleNames {
+			if roleName == playerRoleName {
+				count++
+			}
 		}
 	}
 	return count
@@ -108,10 +116,15 @@ func (instance *Game) GetPlayersWithRole(roleName string) []string {
 // GetPlayers gets a list of all player names
 func (instance *Game) GetPlayers() []string {
 	result := []string{}
-	for player, _ := range instance.players {
+	for player := range instance.players {
 		result = append(result, player)
 	}
 	return result
+}
+
+// GetPlayerRole gets the role of the specified player
+func (instance *Game) GetPlayerRole(player string) string {
+	return instance.players[player]
 }
 
 // Run the game

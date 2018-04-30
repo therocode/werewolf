@@ -155,6 +155,7 @@ func newIrcGame(communication *irc.Irc) *IrcGame {
 
 	game.AddRole(roles.NewVillager(game, communication, lynchVote))
 	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
+	game.AddRole(roles.NewSeer(game, communication, lynchVote))
 
 	return game
 }

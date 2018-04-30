@@ -84,6 +84,11 @@ func (instance *IrcGame) assignRoles() {
 		remainingRoles = append(remainingRoles, "werewolf", "werewolf")
 	}
 
+	// There should be one seer
+	if instance.game.ContainsRole("seer") {
+		remainingRoles = append(remainingRoles, "seer")
+	}
+
 	// The remaining players are villagers
 	remainingRoleCount := len(remainingRoles)
 	for i := 0; i < playerCount-remainingRoleCount; i++ {
@@ -142,8 +147,8 @@ func (instance *IrcGame) CountComponent(component logic.Component) int {
 }
 
 // CountRoles implements the Data interface
-func (instance *IrcGame) CountRoles(roleName string) int {
-	return instance.game.CountRoles(roleName)
+func (instance *IrcGame) CountRoles(roleNames ...string) int {
+	return instance.game.CountRoles(roleNames...)
 }
 
 // Kill implements the Data interface
@@ -159,6 +164,11 @@ func (instance *IrcGame) GetPlayersWithRole(roleName string) []string {
 // GetPlayers implements the Data interface
 func (instance *IrcGame) GetPlayers() []string {
 	return instance.game.GetPlayers()
+}
+
+// GetPlayerRole implements the Data interface
+func (instance *IrcGame) GetPlayerRole(player string) string {
+	return instance.game.GetPlayerRole(player)
 }
 
 // Lock implements the Data interface

@@ -50,7 +50,10 @@ func (*Villager) Generate() []timeline.Event {
 // Handle implements Role interface
 func (villager *Villager) Handle(player string, event timeline.Event, hasTerminated chan bool) {
 	villager.data.Lock()
-	defer villager.data.Unlock()
+	defer func() {
+		villager.data.Unlock()
+		hasTerminated <- true
+	}()
 
 	switch event.Name {
 	case "night_starts":
@@ -60,6 +63,7 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 		vote, timeout := villager.getLynchVote(player)
 
 		if timeout {
+			villager.communication.SendToPlayer(player, "Sorry, you took too long to decide.")
 			villager.communication.SendToChannel("%s took too long to decide, and forfeited their vote", player)
 			villager.lynchVote.VoteBlank()
 		} else {
@@ -81,8 +85,6 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 			}
 		}
 	}
-
-	hasTerminated <- true
 }
 
 func (villager *Villager) getLynchVote(player string) (string, bool) {

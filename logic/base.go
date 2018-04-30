@@ -58,8 +58,7 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 }
 
 func (instance *Base) checkIfGameIsOver() {
-	// Are all werewolves dead?
-	villagerCount := instance.data.CountRoles("villager")
+	villagerCount := instance.data.CountRoles("villager", "seer")
 	werewolfCount := instance.data.CountRoles("werewolf")
 
 	if werewolfCount == 0 {
