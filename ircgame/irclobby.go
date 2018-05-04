@@ -59,14 +59,23 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 		switch {
 		case cmd.Command == "newgame":
 			lobby.handleNewGame(cmd)
+		case cmd.Command == "help":
+			lobby.message("Lobby commands:")
+			lobby.message("!help - Displays this message.")
+			lobby.message("!newgame #channel - Starts a new game in the specified channel. The bot must be an op in the game channel. Note that the # is required.")
+			lobby.message("Game channel commands:")
+			lobby.message("!join - Sign up to join the game before it begins.")
+			lobby.message("!start - Start the game. Only the owner can use this command.")
+			lobby.message("!cancel - Cancel a game before it starts. Only the owner can do this.")
 		case channel == lobby.channel:
 			lobby.message("%s is not a recognized command in the lobby channel. Join a game channel to run game-specific commands.", cmd.Command)
 		case cmd.Command == "join":
 			lobby.handleJoin(cmd)
 		case cmd.Command == "start":
 			lobby.handleStart(cmd)
-		case cmd.Command == "stop":
-			lobby.handleStop(cmd)
+		case cmd.Command == "cancel":
+			lobby.handleCancel(cmd)
+
 		default:
 			if entry, contains := lobby.games[channel]; contains {
 				entry.game.communication.SendToChannel("%s is not a recognized command in a game channel", cmd.Command)
@@ -137,21 +146,21 @@ func (lobby *IrcLobby) handleStart(cmd Command) {
 	go game.Run()
 }
 
-func (lobby *IrcLobby) handleStop(cmd Command) {
+func (lobby *IrcLobby) handleCancel(cmd Command) {
 	game := lobby.games[cmd.Channel].game
 	owner := lobby.games[cmd.Channel].owner
 
 	if cmd.Nick != owner {
-		game.communication.SendToChannel("Only the owner, %s, can stop the game", owner)
+		game.communication.SendToChannel("Only the owner, %s, can cancel the game", owner)
 		return
 	}
 
 	if game.IsRunning() {
-		game.communication.SendToChannel("Cannot stop a game that already started.")
+		game.communication.SendToChannel("Cannot cancel a game that already started.")
 		return
 	}
 
-	game.communication.SendToChannel("Game was stopped by %s", cmd.Nick)
+	game.communication.SendToChannel("Game was cancelled by %s", cmd.Nick)
 	game.EndGame()
 	delete(lobby.games, cmd.Channel)
 }
