@@ -1,7 +1,6 @@
 package timeline
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
@@ -40,15 +39,6 @@ func containsEvent(event Event, events []Event) bool {
 	return false
 }
 
-func str(v interface{}) string {
-	bytes, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytes)
-}
-
 func copyStringToBoolMap(m map[string]bool) map[string]bool {
 	result := make(map[string]bool)
 	for k, v := range m {
@@ -58,6 +48,7 @@ func copyStringToBoolMap(m map[string]bool) map[string]bool {
 }
 
 // Generate a timeline of events based on a set of generators.
+//nolint: gocyclo
 func Generate(generators map[Generator]bool) []Event {
 
 	// Get a list of all events

@@ -1,5 +1,6 @@
 package components
 
+// Vote is a component containing voting functionality
 type Vote struct {
 	componentName  string
 	vote           map[string]int
@@ -10,36 +11,40 @@ func NewVote(name string) *Vote {
 	return &Vote{name, map[string]int{}, 0}
 }
 
-func (this *Vote) Name() string {
-	return this.componentName
+func (vote *Vote) Name() string {
+	return vote.componentName
 }
 
-func (this *Vote) Vote(name string) {
-	this.vote[name]++
+// Vote for a particular name
+func (vote *Vote) Vote(name string) {
+	vote.vote[name]++
 }
 
-func (this *Vote) VoteBlank() {
-	this.blankVoteCount++
+// VoteBlank i. e. increase total vote count but don't vote for a particular name
+func (vote *Vote) VoteBlank() {
+	vote.blankVoteCount++
 }
 
-func (this *Vote) Reset() {
-	this.vote = map[string]int{}
-	this.blankVoteCount = 0
+// Reset the ballot to empty
+func (vote *Vote) Reset() {
+	vote.vote = map[string]int{}
+	vote.blankVoteCount = 0
 }
 
-func (this *Vote) TotalVoteCount() int {
-	totalVoteCount := this.blankVoteCount
-	for _, count := range this.vote {
+// TotalVoteCount returns the total number of votes cast so far
+func (vote *Vote) TotalVoteCount() int {
+	totalVoteCount := vote.blankVoteCount
+	for _, count := range vote.vote {
 		totalVoteCount += count
 	}
 	return totalVoteCount
 }
 
 // MostVoted returns the name with the most votes. Second parameter is true if no votes were cast for anyone.
-func (this *Vote) MostVoted() (string, bool) {
+func (vote *Vote) MostVoted() (string, bool) {
 	maxVoteCount := 0
 	var mostVoted string
-	for name, count := range this.vote {
+	for name, count := range vote.vote {
 		if count > maxVoteCount {
 			maxVoteCount = count
 			mostVoted = name

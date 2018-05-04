@@ -10,6 +10,7 @@ type Communication interface {
 	// occurred.
 	Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool)
 
+	// Respond is used to deliver the input requested by Request()
 	Respond(player string, message string)
 
 	MutePlayer(player string)

@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// Command represents a command to control the Werewolf game
 type Command struct {
 	Channel string
 	Nick    string
@@ -13,7 +12,6 @@ type Command struct {
 	Args    []string
 }
 
-// ParseCommand parses a raw string into a Command.
 func ParseCommand(channel string, nick string, raw string) (cmd Command, err error) {
 	if raw[0] != '!' {
 		return Command{}, errors.New("Command strings must start with '!'")

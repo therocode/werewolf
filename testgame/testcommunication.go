@@ -2,15 +2,12 @@ package testgame
 
 import "fmt"
 
-// TestCommunication is a test implementation of the Communication interface which uses the command line
 type TestCommunication struct{}
 
-// NewTestCommunication creates a new TestCommunication instance
 func NewTestCommunication() *TestCommunication {
 	return &TestCommunication{}
 }
 
-// SendToChannel implements the Communication interface
 func (instance *TestCommunication) SendToChannel(format string, params ...interface{}) {
 	if len(params) == 0 {
 		fmt.Print(format + "\n")
@@ -19,7 +16,6 @@ func (instance *TestCommunication) SendToChannel(format string, params ...interf
 	}
 }
 
-// SendToPlayer implements the Communication interface
 func (instance *TestCommunication) SendToPlayer(player string, format string, params ...interface{}) {
 	fmt.Printf("PM for %s: ", player)
 	if len(params) == 0 {
@@ -29,26 +25,20 @@ func (instance *TestCommunication) SendToPlayer(player string, format string, pa
 	}
 }
 
-// Request implements the Communication interface
 func (instance *TestCommunication) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	fmt.Printf(promptFormat+"\n", params...)
 	var text string
-	fmt.Scanln(&text)
+	_, err := fmt.Scanln(&text)
 
-	return text, false
+	return text, err != nil
 }
 
-// Respond implements the Communication interface
 func (*TestCommunication) Respond(string, string) {}
 
-// MutePlayer implements the Communication interface
 func (*TestCommunication) MutePlayer(string) {}
 
-// UnmutePlayer implements the Communication interface
 func (*TestCommunication) UnmutePlayer(string) {}
 
-// MuteChannel implements the Communication interface
 func (*TestCommunication) MuteChannel() {}
 
-// Leave implements the Communication interface
 func (*TestCommunication) Leave() {}

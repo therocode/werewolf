@@ -11,7 +11,6 @@ import (
 
 const timeoutDelayInSeconds = 30
 
-// Irc is an IRC implementation of the Communication interface
 type Irc struct {
 	irccon           *irc.Connection
 	channel          string
@@ -19,7 +18,6 @@ type Irc struct {
 	responseMapMutex sync.Mutex
 }
 
-// NewIrc creates a new Irc instance
 func NewIrc(irc *irc.Connection, channel string) *Irc {
 	this := &Irc{}
 	this.irccon = irc
@@ -29,32 +27,26 @@ func NewIrc(irc *irc.Connection, channel string) *Irc {
 	return this
 }
 
-// SendToChannel implements the Communication interface
 func (irc *Irc) SendToChannel(format string, params ...interface{}) {
 	irc.irccon.Privmsg(irc.channel, fmt.Sprintf(format, params...))
 }
 
-// SendToPlayer implements the Communication interface
 func (irc *Irc) SendToPlayer(player string, format string, params ...interface{}) {
 	irc.irccon.Privmsg(player, fmt.Sprintf(format, params...))
 }
 
-// MutePlayer implements the Communication interface
 func (irc *Irc) MutePlayer(player string) {
 	irc.irccon.Mode(irc.channel, fmt.Sprintf("-v %s", player))
 }
 
-// UnmutePlayer implements the Communication interface
 func (irc *Irc) UnmutePlayer(player string) {
 	irc.irccon.Mode(irc.channel, fmt.Sprintf("+v %s", player))
 }
 
-// MuteChannel implements the Communication
 func (irc *Irc) MuteChannel() {
 	irc.irccon.Mode(irc.channel, "+m")
 }
 
-// Request implements the Communication interface
 func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
 
@@ -90,7 +82,6 @@ func (irc *Irc) Request(requestFrom string, promptFormat string, params ...inter
 	}
 }
 
-// Respond is used to supply player input as responses to game queries initiated by Request
 func (irc *Irc) Respond(sender string, message string) {
 	irc.responseMapMutex.Lock()
 	channel, contains := irc.response[sender]
@@ -101,7 +92,6 @@ func (irc *Irc) Respond(sender string, message string) {
 	}
 }
 
-// Leave implements the Communication interface
 func (irc *Irc) Leave() {
 	irc.irccon.Part(irc.channel)
 }

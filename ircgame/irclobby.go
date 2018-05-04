@@ -5,7 +5,9 @@ import (
 
 	"github.com/therocode/werewolf/irc"
 	"github.com/therocode/werewolf/logic/components"
-	"github.com/therocode/werewolf/logic/roles"
+	"github.com/therocode/werewolf/logic/roles/seer"
+	"github.com/therocode/werewolf/logic/roles/villager"
+	"github.com/therocode/werewolf/logic/roles/werewolf"
 	ircevent "github.com/thoj/go-ircevent"
 )
 
@@ -24,7 +26,6 @@ type IrcLobby struct {
 	gamePerPlayer map[string]string
 }
 
-// NewIrcLobby creates a new IrcLobby instance
 func NewIrcLobby(botname string, channel string, irccon *ircevent.Connection) *IrcLobby {
 	lobby := &IrcLobby{}
 	lobby.botname = botname
@@ -40,6 +41,7 @@ func (lobby *IrcLobby) message(format string, params ...interface{}) {
 }
 
 // HandleMessage handles all incoming IRC messages
+//nolint: gocyclo
 func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string) {
 	log.Printf("IRC [channel=%s, nick=%s, message=%s]", channel, nick, message)
 
@@ -82,7 +84,7 @@ func (lobby *IrcLobby) handleNewGame(cmd Command) {
 		return
 	}
 
-	if gameEntry, contains := lobby.games[cmd.Args[0]]; contains && !gameEntry.game.IsFinished() {
+	if entry, contains := lobby.games[cmd.Args[0]]; contains && !entry.game.IsFinished() {
 		lobby.message("A game is already in progress in %s", cmd.Args[0])
 		return
 	}
@@ -150,12 +152,12 @@ func newIrcGame(communication *irc.Irc) *IrcGame {
 
 	communication.SendToChannel("New game started!")
 
-	lynchVote := components.NewVote("lynch")
+	lynch := components.NewLynch(game, communication)
 	killVote := components.NewVote("kill")
 
-	game.AddRole(roles.NewVillager(game, communication, lynchVote))
-	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
-	game.AddRole(roles.NewSeer(game, communication, lynchVote))
+	game.AddRole(villager.NewVillager(game, communication, lynch))
+	game.AddRole(werewolf.NewWerewolf(game, communication, killVote, lynch))
+	game.AddRole(seer.NewSeer(game, communication, lynch))
 
 	return game
 }

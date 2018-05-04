@@ -3,6 +3,7 @@ package logic
 import (
 	"time"
 
+	"github.com/therocode/werewolf/logic/roles"
 	"github.com/therocode/werewolf/logic/timeline"
 )
 
@@ -12,7 +13,6 @@ type Base struct {
 	communication Communication
 }
 
-// NewBase creates new Base instance
 func NewBase(data Data, communication Communication) *Base {
 	base := &Base{}
 	base.data = data
@@ -24,25 +24,24 @@ func NewBase(data Data, communication Communication) *Base {
 func (*Base) Generate() []timeline.Event {
 	return []timeline.Event{
 		timeline.Event{
-			Name:   "night_starts",
+			Name:   NightStarts,
 			Before: map[string]bool{},
 			After:  map[string]bool{},
 		},
 		timeline.Event{
-			Name:   "day_starts",
-			Before: map[string]bool{"night_starts": true},
+			Name:   DayStarts,
+			Before: map[string]bool{NightStarts: true},
 			After:  map[string]bool{},
 		},
 	}
 }
 
-// Handle implements the Role interface
 func (instance *Base) Handle(player string, event timeline.Event, hasTerminated chan bool) {
-	if event.Name == "night_starts" {
+	if event.Name == NightStarts {
 		instance.data.IncrementTurn()
 		instance.communication.SendToChannel("Night falls.")
 		instance.checkIfGameIsOver()
-	} else if event.Name == "day_starts" {
+	} else if event.Name == DayStarts {
 		instance.communication.SendToChannel("Day breaks.")
 		instance.unmuteChannel()
 		instance.checkIfGameIsOver()
@@ -58,8 +57,8 @@ func (instance *Base) Handle(player string, event timeline.Event, hasTerminated 
 }
 
 func (instance *Base) checkIfGameIsOver() {
-	villagerCount := instance.data.CountRoles("villager", "seer")
-	werewolfCount := instance.data.CountRoles("werewolf")
+	villagerCount := instance.data.CountRoles(roles.Villager, roles.Seer)
+	werewolfCount := instance.data.CountRoles(roles.Werewolf)
 
 	if werewolfCount == 0 {
 		instance.communication.SendToChannel("All werewolves are dead! Villagers win!")

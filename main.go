@@ -10,6 +10,8 @@ import (
 	"github.com/therocode/werewolf/ircgame"
 	"github.com/therocode/werewolf/logic/components"
 	"github.com/therocode/werewolf/logic/roles"
+	"github.com/therocode/werewolf/logic/roles/villager"
+	"github.com/therocode/werewolf/logic/roles/werewolf"
 	"github.com/therocode/werewolf/testgame"
 	ircevent "github.com/thoj/go-ircevent"
 )
@@ -17,6 +19,7 @@ import (
 const lobbyChannel = "#wolfadmin"
 const serverssl = "irc.boxbox.org:6697"
 
+//nolint
 func runTestGame() {
 	log.SetOutput(ioutil.Discard)
 
@@ -24,20 +27,20 @@ func runTestGame() {
 
 	game := testgame.NewTestGame(communication)
 
-	lynchVote := components.NewVote("lynch")
+	lynch := components.NewLynch(game, communication)
 	killVote := components.NewVote("kill")
 
-	game.AddRole(roles.NewVillager(game, communication, lynchVote))
-	game.AddRole(roles.NewWerewolf(game, communication, killVote, lynchVote))
+	game.AddRole(villager.NewVillager(game, communication, lynch))
+	game.AddRole(werewolf.NewWerewolf(game, communication, killVote, lynch))
 
-	game.AddPlayer("ulf", "werewolf")
-	game.AddPlayer("wulf", "werewolf")
-	game.AddPlayer("dolph", "werewolf")
-	game.AddPlayer("stig", "villager")
-	game.AddPlayer("nils", "villager")
-	game.AddPlayer("hans", "villager")
-	game.AddPlayer("göte", "villager")
-	game.AddPlayer("lennart", "villager")
+	game.AddPlayer("ulf", roles.Werewolf)
+	game.AddPlayer("wulf", roles.Werewolf)
+	game.AddPlayer("dolph", roles.Werewolf)
+	game.AddPlayer("stig", roles.Villager)
+	game.AddPlayer("nils", roles.Villager)
+	game.AddPlayer("hans", roles.Villager)
+	game.AddPlayer("göte", roles.Villager)
+	game.AddPlayer("lennart", roles.Villager)
 
 	game.RunGame()
 }
@@ -45,15 +48,15 @@ func runTestGame() {
 func runIrcGame() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	ircnick1 := "ulfmann"
-	irccon := ircevent.IRC(ircnick1, "Ulf Mannerstrom")
+	ircnick := "ulfmann"
+	irccon := ircevent.IRC(ircnick, "Ulf Mannerstrom")
 
-	lobby := ircgame.NewIrcLobby(ircnick1, lobbyChannel, irccon)
+	lobby := ircgame.NewIrcLobby(ircnick, lobbyChannel, irccon)
 
 	irccon.Debug = false                  //<--- set to true to get lots of IRC debug prints
 	irccon.VerboseCallbackHandler = false //<--- set to true to get even more debug prints
 	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true} //nolint
 	irccon.AddCallback("001", func(e *ircevent.Event) { irccon.Join(lobbyChannel) })
 	irccon.AddCallback("366", func(e *ircevent.Event) {})
 	irccon.AddCallback("PRIVMSG", func(e *ircevent.Event) {

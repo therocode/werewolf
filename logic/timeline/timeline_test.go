@@ -5,7 +5,10 @@ import (
 	"testing"
 )
 
-// Test roles
+/*
+ * Test roles
+ */
+
 type Game struct{}
 
 func (Game) Generate() []Event {

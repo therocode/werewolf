@@ -14,7 +14,6 @@ type Game struct {
 	roles    map[string]Role
 }
 
-// NewGame creates new Game instance
 func NewGame(data Data, communication Communication) *Game {
 	instance := &Game{}
 	instance.roles = map[string]Role{}
@@ -32,13 +31,11 @@ func (instance *Game) getGeneratorSet() map[timeline.Generator]bool {
 	return result
 }
 
-// AddRole adds a role to the game role set
 func (instance *Game) AddRole(role Role) {
 	log.Printf("Added role %s", role.Name())
 	instance.roles[role.Name()] = role
 }
 
-// AddPlayer adds a player to the game
 func (instance *Game) AddPlayer(name string, roleName string) {
 	log.Printf("Added player %s with role %s", name, roleName)
 	instance.players[name] = roleName
@@ -60,15 +57,13 @@ func (instance *Game) ContainsRole(roleName string) bool {
 	return contains
 }
 
-// IsPlayer returns true if the supplied string is the name of a player in the game
 func (instance *Game) IsPlayer(name string) bool {
 	_, contains := instance.players[name]
 	return contains
 }
 
-// IsRole returns true if 'roleName' is the name of the role of a player with the name 'name'
 func (instance *Game) IsRole(name string, roleName string) bool {
-	playerRoleName, _ := instance.players[name]
+	playerRoleName := instance.players[name]
 	return roleName == playerRoleName
 }
 
@@ -84,7 +79,7 @@ func (instance *Game) CountComponent(component Component) int {
 	return count
 }
 
-// CountRoles returns the number of the specified roles in the game
+// CountRoles returns the sum of the role count for each supplied role name
 func (instance *Game) CountRoles(roleNames ...string) int {
 	count := 0
 	for _, playerRoleName := range instance.players {
@@ -97,12 +92,10 @@ func (instance *Game) CountRoles(roleNames ...string) int {
 	return count
 }
 
-// Kill a player
 func (instance *Game) Kill(player string) {
 	delete(instance.players, player)
 }
 
-// GetPlayersWithRole gets a list of all player names with the specified role
 func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	result := []string{}
 	for player, playerRoleName := range instance.players {
@@ -113,7 +106,7 @@ func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	return result
 }
 
-// GetPlayers gets a list of all player names
+// GetPlayers gets a list of all living players
 func (instance *Game) GetPlayers() []string {
 	result := []string{}
 	for player := range instance.players {
@@ -122,18 +115,16 @@ func (instance *Game) GetPlayers() []string {
 	return result
 }
 
-// GetPlayerRole gets the role of the specified player
 func (instance *Game) GetPlayerRole(player string) string {
 	return instance.players[player]
 }
 
-// Run the game
 func (instance *Game) Run() {
 	// If there are no events in the timeline, generate more
 	if len(instance.timeline) == 0 {
 		log.Printf("Timeline is empty, generating events.")
 		instance.timeline = timeline.Generate(instance.getGeneratorSet())
-		log.Printf("Generated timeline: %s", instance.timeline)
+		log.Printf("Generated timeline: %s", instance.timeline) //nolint
 		if len(instance.timeline) == 0 {
 			panic("Couldn't generate a timeline!")
 		}
