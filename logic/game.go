@@ -22,7 +22,7 @@ func NewGame(data Data, communication Communication) *Game {
 	return instance
 }
 
-func (instance *Game) getGeneratorSet() map[timeline.Generator]bool {
+func (instance *Game) generatorSet() map[timeline.Generator]bool {
 	result := map[timeline.Generator]bool{}
 	result[instance.base] = true
 	for _, role := range instance.roles {
@@ -41,8 +41,8 @@ func (instance *Game) AddPlayer(name string, roleName string) {
 	instance.players[name] = roleName
 }
 
-// GetRoles gets the role of each player (duplicates may occur)
-func (instance *Game) GetRoles() []Role {
+// Roles return the role of each player (duplicates may occur)
+func (instance *Game) Roles() []Role {
 	roles := []Role{}
 	for _, roleName := range instance.players {
 		role := instance.roles[roleName]
@@ -96,7 +96,7 @@ func (instance *Game) Kill(player string) {
 	delete(instance.players, player)
 }
 
-func (instance *Game) GetPlayersWithRole(roleName string) []string {
+func (instance *Game) PlayersWithRole(roleName string) []string {
 	result := []string{}
 	for player, playerRoleName := range instance.players {
 		if roleName == playerRoleName {
@@ -106,8 +106,8 @@ func (instance *Game) GetPlayersWithRole(roleName string) []string {
 	return result
 }
 
-// GetPlayers gets a list of all living players
-func (instance *Game) GetPlayers() []string {
+// Players returns a list of all living players
+func (instance *Game) Players() []string {
 	result := []string{}
 	for player := range instance.players {
 		result = append(result, player)
@@ -115,7 +115,7 @@ func (instance *Game) GetPlayers() []string {
 	return result
 }
 
-func (instance *Game) GetPlayerRole(player string) string {
+func (instance *Game) PlayerRole(player string) string {
 	return instance.players[player]
 }
 
@@ -123,7 +123,7 @@ func (instance *Game) Run() {
 	// If there are no events in the timeline, generate more
 	if len(instance.timeline) == 0 {
 		log.Printf("Timeline is empty, generating events.")
-		instance.timeline = timeline.Generate(instance.getGeneratorSet())
+		instance.timeline = timeline.Generate(instance.generatorSet())
 		log.Printf("Generated timeline: %s", instance.timeline) //nolint
 		if len(instance.timeline) == 0 {
 			panic("Couldn't generate a timeline!")

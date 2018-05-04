@@ -53,14 +53,14 @@ func (seer *Seer) Handle(player string, event timeline.Event, hasTerminated chan
 
 	switch event.Name {
 	case logic.SeerIdentifies:
-		target, timeout := seer.getIdentificationTarget(player)
+		target, timeout := seer.requestIdentificationTarget(player)
 
 		if timeout {
 			seer.communication.SendToPlayer(player, "Sorry, you took too long to decide")
 			return
 		}
 
-		if seer.data.GetPlayerRole(target) == roles.Werewolf {
+		if seer.data.PlayerRole(target) == roles.Werewolf {
 			seer.communication.SendToPlayer(player, "That is a werewolf!")
 		} else {
 			seer.communication.SendToPlayer(player, "That is not a werewolf.")
@@ -72,7 +72,7 @@ func (seer *Seer) Handle(player string, event timeline.Event, hasTerminated chan
 	}
 }
 
-func (seer *Seer) getIdentificationTarget(player string) (string, bool) {
+func (seer *Seer) requestIdentificationTarget(player string) (string, bool) {
 	for {
 		seer.data.Unlock()
 		vote, timeout := seer.communication.Request(player, "%s, who do you want to identify?: ", player)

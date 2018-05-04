@@ -10,7 +10,7 @@ import (
 	"github.com/therocode/werewolf/logic/timeline"
 )
 
-// Werewolves can identify other werewolves and can collectively kill one villager per night
+// Werewolf players can identify other werewolves and can collectively kill one villager per night
 type Werewolf struct {
 	data          logic.Data
 	communication logic.Communication
@@ -65,15 +65,15 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 	case logic.NightStarts:
 		werewolf.killVote.Reset()
 	case logic.WerewolvesSeeEachOther:
-		werewolves := werewolf.data.GetPlayersWithRole(roles.Werewolf)
+		werewolves := werewolf.data.PlayersWithRole(roles.Werewolf)
 		werewolf.communication.SendToPlayer(player, "The werewolves are: %s", strings.Join(werewolves, ", "))
 	case logic.WerewolvesKill:
 		// Skip werewolf kill on first turn
-		if werewolf.data.GetTurnCount() <= 1 {
+		if werewolf.data.TurnCount() <= 1 {
 			return
 		}
 
-		vote, timeout := werewolf.getKillVote(player)
+		vote, timeout := werewolf.requestKillVote(player)
 
 		if timeout {
 			werewolf.killVote.VoteBlank()
@@ -103,7 +103,7 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 	}
 }
 
-func (werewolf *Werewolf) getKillVote(player string) (string, bool) {
+func (werewolf *Werewolf) requestKillVote(player string) (string, bool) {
 	for {
 		werewolf.data.Unlock()
 		vote, timeout := werewolf.communication.Request(player, "%s, who do you want to kill?: ", player)

@@ -120,8 +120,8 @@ func (instance *IrcGame) EndGame() {
 	instance.communication.Leave()
 }
 
-func (instance *IrcGame) GetRoles() []logic.Role {
-	return instance.game.GetRoles()
+func (instance *IrcGame) Roles() []logic.Role {
+	return instance.game.Roles()
 }
 
 func (instance *IrcGame) IsPlayer(name string) bool {
@@ -144,16 +144,16 @@ func (instance *IrcGame) Kill(player string) {
 	instance.game.Kill(player)
 }
 
-func (instance *IrcGame) GetPlayersWithRole(roleName string) []string {
-	return instance.game.GetPlayersWithRole(roleName)
+func (instance *IrcGame) PlayersWithRole(roleName string) []string {
+	return instance.game.PlayersWithRole(roleName)
 }
 
-func (instance *IrcGame) GetPlayers() []string {
-	return instance.game.GetPlayers()
+func (instance *IrcGame) Players() []string {
+	return instance.game.Players()
 }
 
-func (instance *IrcGame) GetPlayerRole(player string) string {
-	return instance.game.GetPlayerRole(player)
+func (instance *IrcGame) PlayerRole(player string) string {
+	return instance.game.PlayerRole(player)
 }
 
 func (instance *IrcGame) Lock() {
@@ -168,6 +168,6 @@ func (instance *IrcGame) IncrementTurn() {
 	instance.turnCount++
 }
 
-func (instance *IrcGame) GetTurnCount() int {
+func (instance *IrcGame) TurnCount() int {
 	return instance.turnCount
 }

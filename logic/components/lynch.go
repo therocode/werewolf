@@ -28,7 +28,7 @@ func (lynch *Lynch) Reset() {
 
 // Handle handles a lynch event for a role
 func (lynch *Lynch) Handle(player string) {
-	vote, timeout := lynch.getLynchVote(player)
+	vote, timeout := lynch.requestVote(player)
 
 	if timeout {
 		lynch.communication.SendToPlayer(player, "Sorry, you took too long to decide.")
@@ -54,7 +54,7 @@ func (lynch *Lynch) Handle(player string) {
 	}
 }
 
-func (lynch *Lynch) getLynchVote(player string) (string, bool) {
+func (lynch *Lynch) requestVote(player string) (string, bool) {
 	for {
 		lynch.data.Unlock()
 		vote, timeout := lynch.communication.Request(player, "%s, who do you want to lynch?: ", player)

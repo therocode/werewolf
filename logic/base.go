@@ -70,13 +70,13 @@ func (instance *Base) checkIfGameIsOver() {
 }
 
 func (instance *Base) muteChannel() {
-	for _, player := range instance.data.GetPlayers() {
+	for _, player := range instance.data.Players() {
 		instance.communication.MutePlayer(player)
 	}
 }
 
 func (instance *Base) unmuteChannel() {
-	for _, player := range instance.data.GetPlayers() {
+	for _, player := range instance.data.Players() {
 		instance.communication.UnmutePlayer(player)
 	}
 }

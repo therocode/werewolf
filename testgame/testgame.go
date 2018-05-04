@@ -40,8 +40,8 @@ func (instance *TestGame) EndGame() {
 	instance.run = false
 }
 
-func (instance *TestGame) GetRoles() []logic.Role {
-	return instance.game.GetRoles()
+func (instance *TestGame) Roles() []logic.Role {
+	return instance.game.Roles()
 }
 
 func (instance *TestGame) IsPlayer(name string) bool {
@@ -64,16 +64,16 @@ func (instance *TestGame) Kill(player string) {
 	instance.game.Kill(player)
 }
 
-func (instance *TestGame) GetPlayersWithRole(roleName string) []string {
-	return instance.game.GetPlayersWithRole(roleName)
+func (instance *TestGame) PlayersWithRole(roleName string) []string {
+	return instance.game.PlayersWithRole(roleName)
 }
 
-func (instance *TestGame) GetPlayers() []string {
-	return instance.game.GetPlayers()
+func (instance *TestGame) Players() []string {
+	return instance.game.Players()
 }
 
-func (instance *TestGame) GetPlayerRole(player string) string {
-	return instance.game.GetPlayerRole(player)
+func (instance *TestGame) PlayerRole(player string) string {
+	return instance.game.PlayerRole(player)
 }
 
 func (instance *TestGame) Lock() {
@@ -86,6 +86,6 @@ func (instance *TestGame) IncrementTurn() {
 	instance.turnCount++
 }
 
-func (instance *TestGame) GetTurnCount() int {
+func (instance *TestGame) TurnCount() int {
 	return instance.turnCount
 }
