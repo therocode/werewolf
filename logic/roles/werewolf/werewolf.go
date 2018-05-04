@@ -63,6 +63,10 @@ func (werewolf *Werewolf) Handle(player string, event timeline.Event, hasTermina
 
 	switch event.Name {
 	case logic.NightStarts:
+		if werewolf.data.TurnCount() == 1 {
+			werewolf.communication.SendToPlayer(player, "You are a werewolf!")
+		}
+
 		werewolf.killVote.Reset()
 	case logic.WerewolvesSeeEachOther:
 		werewolves := werewolf.data.PlayersWithRole(roles.Werewolf)

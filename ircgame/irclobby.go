@@ -51,6 +51,11 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 	}
 
 	if cmd, err := ParseCommand(channel, nick, message); err == nil {
+		// Ignore commands sent directly to the bot
+		if channel == lobby.botname {
+			return
+		}
+
 		switch {
 		case cmd.Command == "newgame":
 			lobby.handleNewGame(cmd)
@@ -63,7 +68,11 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 		case cmd.Command == "stop":
 			lobby.handleStop(cmd)
 		default:
-			lobby.games[channel].game.communication.SendToChannel("%s is not a recognized command in a game channel", cmd.Command)
+			if entry, contains := lobby.games[channel]; contains {
+				entry.game.communication.SendToChannel("%s is not a recognized command in a game channel", cmd.Command)
+			} else {
+				log.Printf("Warning: Received command on channel that is not a game channel!")
+			}
 		}
 	} else {
 		// Handle player input

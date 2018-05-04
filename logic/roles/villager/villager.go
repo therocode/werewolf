@@ -53,6 +53,9 @@ func (villager *Villager) Handle(player string, event timeline.Event, hasTermina
 
 	switch event.Name {
 	case logic.NightStarts:
+		if villager.data.TurnCount() == 1 {
+			villager.communication.SendToPlayer(player, "You are a villager!")
+		}
 	case logic.DayStarts:
 		villager.lynch.Reset()
 	case logic.Lynch:

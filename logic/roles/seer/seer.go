@@ -52,6 +52,10 @@ func (seer *Seer) Handle(player string, event timeline.Event, hasTerminated chan
 	}()
 
 	switch event.Name {
+	case logic.NightStarts:
+		if seer.data.TurnCount() == 1 {
+			seer.communication.SendToPlayer(player, "You are a seer!")
+		}
 	case logic.SeerIdentifies:
 		target, timeout := seer.requestIdentificationTarget(player)
 
