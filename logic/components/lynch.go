@@ -40,7 +40,7 @@ func (lynch *Lynch) Handle(player string) {
 	}
 
 	totalLynchVoteCount := lynch.vote.TotalVoteCount()
-	neededLynchVotes := lynch.data.CountComponent(lynch.vote)
+	neededLynchVotes := lynch.data.CountComponent(lynch)
 	log.Printf("%d people voted, need %d votes", totalLynchVoteCount, neededLynchVotes)
 	if totalLynchVoteCount == neededLynchVotes {
 		mostVoted, noVotes := lynch.vote.MostVoted()
