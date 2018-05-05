@@ -59,7 +59,7 @@ func (lobby *IrcLobby) HandleMessage(channel string, nick string, message string
 		switch {
 		case cmd.Command == "newgame":
 			lobby.handleNewGame(cmd)
-		case cmd.Command == "help":
+		case cmd.Command == "help" && channel == lobby.channel:
 			lobby.message("Lobby commands:")
 			lobby.message("!help - Displays this message.")
 			lobby.message("!newgame #channel - Starts a new game in the specified channel. The bot must be an op in the game channel. Note that the # is required.")
