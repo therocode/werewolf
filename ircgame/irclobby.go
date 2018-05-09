@@ -107,6 +107,11 @@ func (lobby *IrcLobby) handleNewGame(cmd Command) {
 		return
 	}
 
+	if cmd.Args[0] == lobby.channel {
+		lobby.message("Cannot start a game in the lobby channel.")
+		return
+	}
+
 	lobby.message("Starting a new game in %s", cmd.Args[0])
 	communication := irc.NewIrc(lobby.irccon, cmd.Args[0])
 	lobby.games[cmd.Args[0]] = gameEntry{cmd.Nick, communication, newIrcGame(communication)}
