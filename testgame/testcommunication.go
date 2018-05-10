@@ -41,4 +41,6 @@ func (*TestCommunication) UnmutePlayer(string) {}
 
 func (*TestCommunication) MuteChannel() {}
 
+func (*TestCommunication) UnmuteChannel() {}
+
 func (*TestCommunication) Leave() {}

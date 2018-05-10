@@ -19,5 +19,7 @@ type Communication interface {
 
 	MuteChannel()
 
+	UnmuteChannel()
+
 	Leave()
 }

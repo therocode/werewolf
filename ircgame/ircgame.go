@@ -117,6 +117,7 @@ func (instance *IrcGame) IsRunning() bool {
 
 func (instance *IrcGame) EndGame() {
 	instance.state = gameStateGameOver
+	instance.communication.UnmuteChannel()
 	instance.communication.Leave()
 }
 

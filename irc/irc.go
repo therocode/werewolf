@@ -47,6 +47,10 @@ func (irc *Irc) MuteChannel() {
 	irc.irccon.Mode(irc.channel, "+m")
 }
 
+func (irc *Irc) UnmuteChannel() {
+	irc.irccon.Mode(irc.channel, "-m")
+}
+
 func (irc *Irc) Request(requestFrom string, promptFormat string, params ...interface{}) (string, bool) {
 	irc.irccon.Privmsg(requestFrom, fmt.Sprintf(promptFormat, params...))
 
